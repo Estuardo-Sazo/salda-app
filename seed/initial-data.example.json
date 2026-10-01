@@ -1,0 +1,303 @@
+{
+  "profile": {
+    "nombre": "Usuario Demo",
+    "ingreso_mensual": 9000.0,
+    "moneda": "GTQ"
+  },
+  "budget_items": [
+    {
+      "concepto": "Comida",
+      "monto": 2500.0
+    },
+    {
+      "concepto": "Luz",
+      "monto": 250.0
+    },
+    {
+      "concepto": "Internet",
+      "monto": 300.0
+    }
+  ],
+  "debts": [
+    {
+      "key": "tarjeta-oro",
+      "nombre": "Tarjeta Oro",
+      "entidad": "Banco Ejemplo",
+      "tipo": "tarjeta",
+      "tasa_anual": 0.54,
+      "tasa_efectiva_anual": 0.7,
+      "cuota_mensual": 600.0,
+      "seguro_mensual": 40.0,
+      "dia_corte": 20,
+      "dia_pago": 12,
+      "limite_credito": 10000.0,
+      "saldo_base": 3200.0,
+      "fecha_base": "2026-10-01",
+      "saldo_cancelacion": null,
+      "notas": "Datos ficticios de ejemplo."
+    },
+    {
+      "key": "tarjeta-clasica",
+      "nombre": "Tarjeta Clásica",
+      "entidad": "Banco Demo",
+      "tipo": "tarjeta",
+      "tasa_anual": 0.48,
+      "tasa_efectiva_anual": 0.6,
+      "cuota_mensual": 1200.0,
+      "seguro_mensual": 25.0,
+      "dia_corte": 5,
+      "dia_pago": 28,
+      "limite_credito": 15000.0,
+      "saldo_base": 9800.0,
+      "fecha_base": "2026-10-01",
+      "saldo_cancelacion": null,
+      "notas": "Datos ficticios de ejemplo."
+    },
+    {
+      "key": "prestamo-personal",
+      "nombre": "Préstamo Personal",
+      "entidad": "Banco Ejemplo",
+      "tipo": "prestamo",
+      "tasa_anual": 0.32,
+      "cuota_mensual": 1100.0,
+      "seguro_mensual": 0,
+      "dia_pago": 15,
+      "saldo_base": 15400.0,
+      "fecha_base": "2026-10-01",
+      "saldo_cancelacion": 15900.0,
+      "saldo_cancelacion_fecha": "2026-10-01",
+      "cuotas_totales": 24,
+      "cuota_actual": 10,
+      "fecha_vencimiento": "2028-01-15",
+      "notas": "Datos ficticios de ejemplo."
+    },
+    {
+      "key": "prestamo-vehiculo",
+      "nombre": "Préstamo Vehículo",
+      "entidad": "Financiera Demo",
+      "tipo": "prestamo",
+      "tasa_anual": 0.18,
+      "cuota_mensual": 950.0,
+      "seguro_mensual": null,
+      "dia_pago": 5,
+      "saldo_base": 18200.0,
+      "fecha_base": "2026-10-01",
+      "saldo_cancelacion": null,
+      "notas": "Seguro PENDIENTE (ejemplo)."
+    },
+    {
+      "key": "cooperativa",
+      "nombre": "Cooperativa",
+      "entidad": "Cooperativa Ejemplo",
+      "tipo": "prestamo",
+      "tasa_anual": 0.14,
+      "cuota_mensual": 700.0,
+      "seguro_mensual": null,
+      "dia_pago": 22,
+      "saldo_base": 9600.0,
+      "fecha_base": "2026-10-01",
+      "saldo_cancelacion": null,
+      "notas": "Datos ficticios de ejemplo."
+    },
+    {
+      "key": "tarjeta-cerrada",
+      "nombre": "Tarjeta Cerrada",
+      "entidad": "Banco Demo",
+      "tipo": "tarjeta",
+      "tasa_anual": null,
+      "cuota_mensual": 0,
+      "saldo_base": 0,
+      "fecha_base": "2026-04-01",
+      "activa": false,
+      "cerrada_en": "2026-04-01",
+      "notas": "Cerrada en abril 2026. Solo historial (ejemplo)."
+    }
+  ],
+  "debt_installments": [
+    {
+      "debt": "tarjeta-oro",
+      "descripcion": "Celular (visacuotas)",
+      "monto_cuota": 250.0,
+      "cuotas_totales": 12,
+      "cuotas_cobradas": 5,
+      "cargo_extra_por_cuota": 0
+    },
+    {
+      "debt": "tarjeta-clasica",
+      "descripcion": "Electrodoméstico (intracuotas)",
+      "monto_cuota": 180.0,
+      "cuotas_totales": 10,
+      "cuotas_cobradas": 6,
+      "capital_pendiente": 715.4,
+      "cargo_extra_por_cuota": 0
+    }
+  ],
+  "monthly_snapshots_historial": {
+    "_columnas": [
+      "tarjeta-oro",
+      "tarjeta-cerrada",
+      "tarjeta-clasica",
+      "prestamo-personal",
+      "prestamo-vehiculo",
+      "cooperativa"
+    ],
+    "2026-01": [
+      2430.5,
+      2400,
+      10882.25,
+      20893.6,
+      24326.75,
+      14912.7
+    ],
+    "2026-02": [
+      2516.0,
+      1800,
+      10762.0,
+      20283.2,
+      23646.0,
+      14322.4
+    ],
+    "2026-03": [
+      2601.5,
+      1200,
+      10641.75,
+      19672.8,
+      22965.25,
+      13732.1
+    ],
+    "2026-04": [
+      2687.0,
+      0,
+      10521.5,
+      19062.4,
+      22284.5,
+      13141.8
+    ],
+    "2026-05": [
+      2772.5,
+      null,
+      10401.25,
+      18452.0,
+      21603.75,
+      12551.5
+    ],
+    "2026-06": [
+      2858.0,
+      null,
+      10281.0,
+      17841.6,
+      20923.0,
+      11961.2
+    ],
+    "2026-07": [
+      2943.5,
+      null,
+      10160.75,
+      17231.2,
+      20242.25,
+      11370.9
+    ],
+    "2026-08": [
+      3029.0,
+      null,
+      10040.5,
+      16620.8,
+      19561.5,
+      10780.6
+    ],
+    "2026-09": [
+      3114.5,
+      null,
+      9920.25,
+      16010.4,
+      18880.75,
+      10190.3
+    ],
+    "2026-10": [
+      3200.0,
+      null,
+      9800.0,
+      15400.0,
+      18200.0,
+      9600.0
+    ]
+  },
+  "payments": [
+    {
+      "debt": "cooperativa",
+      "fecha": "2026-09-30",
+      "periodo": "2026-10-01",
+      "pago_total": 700.0,
+      "interes": 118.89,
+      "cargos": 0,
+      "saldo_despues": 9600.0,
+      "es_estimado": false,
+      "fuente": "App cooperativa",
+      "notas": "Ejemplo"
+    },
+    {
+      "debt": "prestamo-vehiculo",
+      "fecha": "2026-10-05",
+      "periodo": "2026-10-01",
+      "pago_total": 950.0,
+      "interes": 269.25,
+      "cargos": 0,
+      "saldo_despues": 18200.0,
+      "es_estimado": true,
+      "fuente": "Estado de cuenta",
+      "notas": "Interés estimado (ejemplo)"
+    }
+  ],
+  "expenses": [
+    {
+      "fecha": "2026-09-03",
+      "periodo": "2026-09-01",
+      "descripcion": "Streaming",
+      "categoria": "Suscripción",
+      "monto": 89.0,
+      "metodo": "tarjeta",
+      "debt": "tarjeta-oro"
+    },
+    {
+      "fecha": "2026-09-11",
+      "periodo": "2026-09-01",
+      "descripcion": "Supermercado",
+      "categoria": "Comida",
+      "monto": 312.45,
+      "metodo": "tarjeta",
+      "debt": "tarjeta-oro"
+    },
+    {
+      "fecha": "2026-09-18",
+      "periodo": "2026-09-01",
+      "descripcion": "Recarga celular",
+      "categoria": "Recargas",
+      "monto": 25.0,
+      "metodo": "tarjeta",
+      "debt": "tarjeta-oro"
+    },
+    {
+      "fecha": "2026-09-20",
+      "periodo": "2026-09-01",
+      "descripcion": "Almuerzo",
+      "categoria": "Comida",
+      "monto": 45.0,
+      "metodo": "efectivo"
+    }
+  ],
+  "receivables_opcional": [
+    {
+      "persona": "Amigo (préstamo)",
+      "monto": 500.0,
+      "saldo": 500.0
+    }
+  ],
+  "plan_inicial": {
+    "nombre": "Plan inicial – avalancha",
+    "estrategia": "avalancha",
+    "presupuesto_deudas": 4550.0,
+    "abono_extra": 0,
+    "fecha_inicio": "2026-11-01",
+    "activo": true
+  }
+}

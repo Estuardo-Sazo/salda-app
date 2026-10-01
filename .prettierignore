@@ -1,0 +1,7 @@
+dist
+coverage
+dev-dist
+package-lock.json
+src/components/ui
+supabase/.temp
+docs

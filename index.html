@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es-GT">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Saldá · Control de deudas</title>
+    <meta name="description" content="Registrá pagos y gastos, seguí tu plan y quedá libre de deudas." />
+    <meta name="theme-color" content="#f3f8f6" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png" />
+    <script>
+      // Aplica el tema antes de pintar para evitar el destello claro/oscuro.
+      try {
+        var t = localStorage.getItem('salda-theme')
+        var dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark) document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

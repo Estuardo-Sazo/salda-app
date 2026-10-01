@@ -1,0 +1,38 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Entorno y Supabase CLI
+.env
+.env.*
+!.env.example
+supabase/.temp
+supabase/.branches
+coverage
+dev-dist
+
+# Datos personales: nunca al repo (ver README → "Datos privados")
+docs/PLAN.md
+seed/initial-data.json
+*.private.test.ts
