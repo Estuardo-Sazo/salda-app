@@ -4,9 +4,12 @@ import { ComingSoon } from '@/components/common'
 import { AppLayout } from '@/components/layout/app-layout'
 import { LoginPage } from '@/features/auth/login-page'
 import { DashboardPage } from '@/features/dashboard/dashboard-page'
+import { DebtDetailPage } from '@/features/debts/debt-detail-page'
+import { DebtFormPage } from '@/features/debts/debt-form-page'
 import { DebtsPage } from '@/features/debts/debts-page'
 import { MorePage } from '@/features/more/more-page'
 import { OnboardingPage } from '@/features/onboarding/onboarding-page'
+import { PaymentFormPage } from '@/features/payments/payment-form-page'
 import { RegisterPage } from '@/features/register/register-page'
 
 export const router = createBrowserRouter([
@@ -20,14 +23,7 @@ export const router = createBrowserRouter([
           { index: true, element: <DashboardPage /> },
           { path: 'bienvenida', element: <OnboardingPage /> },
           { path: 'registrar', element: <RegisterPage /> },
-          {
-            path: 'registrar/pago',
-            element: (
-              <ComingSoon title="Registrar pago" fase={3}>
-                Formulario rápido: deuda, monto, fecha, período y saldo después.
-              </ComingSoon>
-            ),
-          },
+          { path: 'registrar/pago', element: <PaymentFormPage /> },
           {
             path: 'registrar/gasto',
             element: (
@@ -37,6 +33,10 @@ export const router = createBrowserRouter([
             ),
           },
           { path: 'deudas', element: <DebtsPage /> },
+          { path: 'deudas/nueva', element: <DebtFormPage /> },
+          { path: 'deudas/:id', element: <DebtDetailPage /> },
+          { path: 'deudas/:id/editar', element: <DebtFormPage /> },
+          { path: 'pagos/:id/editar', element: <PaymentFormPage /> },
           { path: 'saldos', element: <ComingSoon title="Saldos mensuales" fase={5} /> },
           { path: 'plan', element: <ComingSoon title="Plan vs real" fase={5} /> },
           {

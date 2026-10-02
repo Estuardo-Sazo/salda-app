@@ -36,3 +36,5 @@ dev-dist
 docs/PLAN.md
 seed/initial-data.json
 *.private.test.ts
+
+.private-patterns

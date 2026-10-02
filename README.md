@@ -76,6 +76,9 @@ Estos archivos están en `.gitignore` y **nunca** deben subirse al repositorio:
 | `seed/initial-data.json` | Seed real (mismo formato que `initial-data.example.json`) |
 | `*.private.test.ts` | Tests de aceptación con los valores reales de la sección 6.3 del plan |
 
+Un hook de pre-commit (`.githooks/pre-commit`, se activa con `npm install`) bloquea cualquier commit que incluya
+los patrones de `.private-patterns`. Generalo con `npm run private:patterns` después de clonar.
+
 Guardalos en un lugar seguro fuera del repo (por ejemplo, un gestor de contraseñas o una nube privada). Sin ellos la
 app compila y los tests del repo pasan con datos sintéticos.
 
@@ -89,6 +92,8 @@ app compila y los tests del repo pasan con datos sintéticos.
 | `npm run format` | Prettier |
 | `npm run build` | Typecheck + build de producción con service worker |
 | `npm run icons` | Regenera los PNG de la PWA desde `public/icons/*.svg` |
+| `npm run private:patterns` | Genera `.private-patterns` (local) con nombres y montos del seed real |
+| `npm run private:check` | Revisa que ningún archivo versionado tenga datos personales |
 
 ## Deploy
 

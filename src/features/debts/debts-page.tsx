@@ -1,4 +1,4 @@
-import { CreditCard, Landmark } from 'lucide-react'
+import { CreditCard, Landmark, Plus } from 'lucide-react'
 import { Link } from 'react-router'
 import { EmptyState, ErrorState, Money, OrPending, PageHeader, PendingBadge } from '@/components/common'
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDebtStatus, type DebtStatus } from '@/features/common/queries'
 import { formatDate, formatGTQ, formatPercent } from '@/lib/format'
+import { TIPO_LABEL } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 /** Avance contra el saldo base (cuánto bajó desde que se empezó a seguir). */
@@ -30,7 +31,7 @@ function DebtCard({ debt }: { debt: DebtStatus }) {
   const progress = progressOf(debt)
   const closed = debt.estado !== 'activa'
   return (
-    <Card className={cn(closed && 'opacity-70')}>
+    <Card className={cn('hover:ring-primary/40 relative transition', closed && 'opacity-70')}>
       <CardContent className="flex flex-col gap-4">
         <div className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-3 sm:grid-cols-[auto_1fr_auto]">
           <span className="bg-accent text-accent-foreground grid size-10 shrink-0 place-items-center rounded-xl">
@@ -38,10 +39,15 @@ function DebtCard({ debt }: { debt: DebtStatus }) {
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h2 className="font-semibold">{debt.nombre}</h2>
-              <Badge variant="outline" className="capitalize">
-                {debt.tipo}
-              </Badge>
+              <h2 className="font-semibold">
+                <Link
+                  to={`/deudas/${debt.debt_id}`}
+                  className="after:absolute after:inset-0 focus-visible:outline-none"
+                >
+                  {debt.nombre}
+                </Link>
+              </h2>
+              <Badge variant="outline">{TIPO_LABEL[debt.tipo]}</Badge>
               {closed && <Badge variant="secondary">{debt.estado === 'cerrada' ? 'Cerrada' : 'Liquidada'}</Badge>}
             </div>
             <p className="text-muted-foreground mt-0.5 text-xs">{debt.entidad}</p>
@@ -125,6 +131,13 @@ export function DebtsPage() {
               {activas.length} activas · <Money value={total} className="text-foreground font-medium" /> en total
             </>
           ) : undefined
+        }
+        action={
+          <Button asChild>
+            <Link to="/deudas/nueva">
+              <Plus /> Nueva
+            </Link>
+          </Button>
         }
       />
       {isLoading && (

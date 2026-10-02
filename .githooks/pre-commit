@@ -1,0 +1,2 @@
+#!/bin/sh
+node scripts/check-private.mjs || exit 1

@@ -18,7 +18,10 @@
     "db:link": "supabase link",
     "db:push": "supabase db push",
     "db:diff": "supabase db diff",
-    "db:types": "supabase gen types typescript --linked --schema public > src/lib/supabase/database.types.ts"
+    "db:types": "supabase gen types typescript --linked --schema public > src/lib/supabase/database.types.ts",
+    "private:patterns": "node scripts/private-patterns.mjs",
+    "private:check": "node scripts/check-private.mjs --all",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",

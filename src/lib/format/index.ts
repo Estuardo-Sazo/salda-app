@@ -82,3 +82,5 @@ export function periodOf(isoDate: string): string {
 export function currentPeriod(now: Date = new Date()): string {
   return periodOf(todayISO(now))
 }
+
+export const TIPO_LABEL = { tarjeta: 'Tarjeta', prestamo: 'Préstamo' } as const

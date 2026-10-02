@@ -5,6 +5,7 @@ import {
   CalendarClock,
   CalendarDays,
   CheckCircle2,
+  ChevronRight,
   Circle,
   Flag,
   History,
@@ -14,7 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useMemo, type ReactNode } from 'react'
-import { Navigate } from 'react-router'
+import { Link, Navigate } from 'react-router'
 import { ErrorState, Money } from '@/components/common'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -166,24 +167,30 @@ function UpcomingPayments({ model }: { model: DashboardModel }) {
     <Card>
       <CardHeader>
         <CardTitle>Pagos de {formatPeriodLong(model.periodo)}</CardTitle>
-        <CardDescription>Según el día de pago de cada deuda</CardDescription>
+        <CardDescription>Tocá una pendiente para registrar su pago</CardDescription>
       </CardHeader>
       <CardContent>
         <ul className="divide-y">
           {model.proximosPagos.map((p) => (
-            <li key={p.debtId} className="flex items-center gap-3 py-2.5">
-              {p.pagado ? (
-                <CheckCircle2 className="text-success size-5 shrink-0" aria-hidden />
-              ) : (
-                <Circle className="text-muted-foreground/60 size-5 shrink-0" aria-hidden />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{p.nombre}</p>
-                <p className="text-muted-foreground text-xs">
-                  {formatDate(p.fecha)} · {p.pagado ? 'Pagado' : 'Pendiente'}
-                </p>
-              </div>
-              <Money value={p.cuota} className={cn('text-sm', p.pagado && 'text-muted-foreground line-through')} />
+            <li key={p.debtId}>
+              <Link
+                to={p.pagado ? `/deudas/${p.debtId}` : `/registrar/pago?deuda=${p.debtId}`}
+                className="hover:bg-accent/50 -mx-2 flex items-center gap-3 rounded-lg px-2 py-2.5 transition"
+              >
+                {p.pagado ? (
+                  <CheckCircle2 className="text-success size-5 shrink-0" aria-hidden />
+                ) : (
+                  <Circle className="text-muted-foreground/60 size-5 shrink-0" aria-hidden />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{p.nombre}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatDate(p.fecha)} · {p.pagado ? 'Pagado' : 'Pendiente'}
+                  </p>
+                </div>
+                <Money value={p.cuota} className={cn('text-sm', p.pagado && 'text-muted-foreground line-through')} />
+                <ChevronRight className="text-muted-foreground size-4 shrink-0" aria-hidden />
+              </Link>
             </li>
           ))}
         </ul>
