@@ -1,265 +1,739 @@
-// Tipos de la BD escritos a mano a partir de supabase/migrations.
-// Cuando el proyecto esté enlazado, regenera este archivo con `npm run db:types`.
-
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
-type DebtType = 'tarjeta' | 'prestamo'
-type PaymentMethod = 'efectivo' | 'debito' | 'tarjeta' | 'transferencia'
-type SnapshotOrigin = 'historial' | 'registro' | 'manual'
-type PlanStrategy = 'avalancha' | 'bola_nieve' | 'cuotas_fijas'
-
-type Table<Row, Required extends keyof Row, Generated extends keyof Row = never> = {
-  Row: Row
-  Insert: Pick<Row, Required> & Partial<Omit<Row, Required | Generated>>
-  Update: Partial<Omit<Row, Generated>>
-  Relationships: []
-}
-
-type ProfileRow = {
-  id: string
-  nombre: string | null
-  ingreso_mensual: number | null
-  moneda: string
-  created_at: string
-}
-
-type BudgetItemRow = {
-  id: string
-  user_id: string
-  concepto: string
-  monto: number
-  activo: boolean
-  orden: number
-  created_at: string
-}
-
-type DebtRow = {
-  id: string
-  user_id: string
-  nombre: string
-  entidad: string | null
-  tipo: DebtType
-  tasa_anual: number | null
-  tasa_efectiva_anual: number | null
-  cuota_mensual: number | null
-  seguro_mensual: number | null
-  dia_corte: number | null
-  dia_pago: number | null
-  limite_credito: number | null
-  saldo_base: number
-  fecha_base: string
-  saldo_cancelacion: number | null
-  saldo_cancelacion_fecha: string | null
-  cuotas_totales: number | null
-  cuota_actual: number | null
-  fecha_vencimiento: string | null
-  prioridad: number | null
-  activa: boolean
-  cerrada_en: string | null
-  notas: string | null
-  created_at: string
-}
-
-type DebtInstallmentRow = {
-  id: string
-  user_id: string
-  debt_id: string
-  descripcion: string
-  monto_cuota: number
-  cuotas_totales: number
-  cuotas_cobradas: number
-  capital_pendiente: number | null
-  cargo_extra_por_cuota: number
-  activa: boolean
-  created_at: string
-}
-
-type PaymentRow = {
-  id: string
-  user_id: string
-  debt_id: string
-  fecha: string
-  periodo: string
-  pago_total: number
-  interes: number | null
-  cargos: number | null
-  capital: number | null
-  saldo_despues: number
-  es_estimado: boolean
-  fuente: string | null
-  notas: string | null
-  created_at: string
-}
-
-type ExpenseRow = {
-  id: string
-  user_id: string
-  fecha: string
-  periodo: string
-  descripcion: string
-  categoria: string
-  monto: number
-  metodo: PaymentMethod
-  debt_id: string | null
-  created_at: string
-}
-
-type MonthlySnapshotRow = {
-  id: string
-  user_id: string
-  debt_id: string
-  periodo: string
-  saldo: number
-  cuotas_fuera_saldo: number
-  origen: SnapshotOrigin
-}
-
-type PlanRow = {
-  id: string
-  user_id: string
-  nombre: string
-  estrategia: PlanStrategy
-  presupuesto_deudas: number
-  abono_extra: number
-  fecha_inicio: string
-  activo: boolean
-  supuestos: Json | null
-  created_at: string
-}
-
-type PlanRowRow = {
-  id: string
-  plan_id: string
-  user_id: string
-  periodo: string
-  debt_id: string | null
-  saldo: number | null
-  pago: number | null
-  interes_cargos: number | null
-}
-
-type ReceivableRow = {
-  id: string
-  user_id: string
-  persona: string
-  monto: number
-  saldo: number
-  notas: string | null
-  created_at: string
-}
-
-type DebtStatusView = {
-  debt_id: string
-  user_id: string
-  nombre: string
-  entidad: string | null
-  tipo: DebtType
-  tasa_anual: number | null
-  cuota_mensual: number | null
-  seguro_mensual: number | null
-  dia_corte: number | null
-  dia_pago: number | null
-  limite_credito: number | null
-  saldo_base: number
-  fecha_base: string
-  saldo_cancelacion: number | null
-  saldo_cancelacion_fecha: string | null
-  prioridad: number | null
-  notas: string | null
-  activa: boolean
-  cerrada_en: string | null
-  saldo_actual: number
-  cuotas_fuera_saldo: number
-  deuda_real: number
-  interes_acumulado: number
-  capital_acumulado: number
-  pagado_acumulado: number
-  ultimo_pago: string | null
-  estado: 'activa' | 'liquidada' | 'cerrada'
-}
-
-type MonthlyBalanceView = {
-  user_id: string
-  periodo: string
-  debt_id: string
-  nombre: string
-  saldo: number
-  cuotas_fuera_saldo: number
-  total_real: number
-  origen: SnapshotOrigin
-  es_registrado: boolean
-}
-
-type MonthlyTotalsView = {
-  user_id: string
-  periodo: string
-  saldo_total: number
-  cuotas_fuera_saldo: number
-  total_real: number
-  pagos: number
-  interes_cargos: number
-  capital: number
-  compras_tarjeta: number
-  gastos_total: number
-  ingreso_mensual: number | null
-  gastos_fijos: number
-  flujo_libre: number
-}
-
-type View<Row> = { Row: Row; Relationships: [] }
-
 export type Database = {
-  __InternalSupabase: { PostgrestVersion: '12' }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '14.18'
+  }
   public: {
     Tables: {
-      profiles: Table<ProfileRow, 'id', 'created_at'>
-      budget_items: Table<BudgetItemRow, 'concepto' | 'monto', 'id' | 'created_at'>
-      debts: Table<DebtRow, 'nombre' | 'tipo' | 'saldo_base' | 'fecha_base', 'id' | 'created_at'>
-      debt_installments: Table<
-        DebtInstallmentRow,
-        'debt_id' | 'descripcion' | 'monto_cuota' | 'cuotas_totales',
-        'id' | 'created_at'
-      >
-      payments: Table<
-        PaymentRow,
-        'debt_id' | 'fecha' | 'periodo' | 'pago_total' | 'saldo_despues',
-        'id' | 'created_at' | 'capital'
-      >
-      expenses: Table<
-        ExpenseRow,
-        'fecha' | 'periodo' | 'descripcion' | 'categoria' | 'monto' | 'metodo',
-        'id' | 'created_at'
-      >
-      monthly_snapshots: Table<MonthlySnapshotRow, 'debt_id' | 'periodo' | 'saldo' | 'origen', 'id'>
-      plans: Table<PlanRow, 'nombre' | 'estrategia' | 'presupuesto_deudas' | 'fecha_inicio', 'id' | 'created_at'>
-      plan_rows: Table<PlanRowRow, 'plan_id' | 'periodo', 'id'>
-      receivables: Table<ReceivableRow, 'persona' | 'monto' | 'saldo', 'id' | 'created_at'>
+      budget_items: {
+        Row: {
+          activo: boolean
+          concepto: string
+          created_at: string
+          id: string
+          monto: number
+          orden: number
+          user_id: string
+        }
+        Insert: {
+          activo?: boolean
+          concepto: string
+          created_at?: string
+          id?: string
+          monto: number
+          orden?: number
+          user_id?: string
+        }
+        Update: {
+          activo?: boolean
+          concepto?: string
+          created_at?: string
+          id?: string
+          monto?: number
+          orden?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      debt_installments: {
+        Row: {
+          activa: boolean
+          capital_pendiente: number | null
+          cargo_extra_por_cuota: number
+          created_at: string
+          cuotas_cobradas: number
+          cuotas_totales: number
+          debt_id: string
+          descripcion: string
+          id: string
+          monto_cuota: number
+          user_id: string
+        }
+        Insert: {
+          activa?: boolean
+          capital_pendiente?: number | null
+          cargo_extra_por_cuota?: number
+          created_at?: string
+          cuotas_cobradas?: number
+          cuotas_totales: number
+          debt_id: string
+          descripcion: string
+          id?: string
+          monto_cuota: number
+          user_id?: string
+        }
+        Update: {
+          activa?: boolean
+          capital_pendiente?: number | null
+          cargo_extra_por_cuota?: number
+          created_at?: string
+          cuotas_cobradas?: number
+          cuotas_totales?: number
+          debt_id?: string
+          descripcion?: string
+          id?: string
+          monto_cuota?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'debt_installments_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'debts'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'debt_installments_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_debt_status'
+            referencedColumns: ['debt_id']
+          },
+          {
+            foreignKeyName: 'debt_installments_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_monthly_balances'
+            referencedColumns: ['debt_id']
+          },
+        ]
+      }
+      debts: {
+        Row: {
+          activa: boolean
+          cerrada_en: string | null
+          created_at: string
+          cuota_actual: number | null
+          cuota_mensual: number | null
+          cuotas_totales: number | null
+          dia_corte: number | null
+          dia_pago: number | null
+          entidad: string | null
+          fecha_base: string
+          fecha_vencimiento: string | null
+          id: string
+          limite_credito: number | null
+          nombre: string
+          notas: string | null
+          prioridad: number | null
+          saldo_base: number
+          saldo_cancelacion: number | null
+          saldo_cancelacion_fecha: string | null
+          seguro_mensual: number | null
+          tasa_anual: number | null
+          tasa_efectiva_anual: number | null
+          tipo: Database['public']['Enums']['debt_type']
+          user_id: string
+        }
+        Insert: {
+          activa?: boolean
+          cerrada_en?: string | null
+          created_at?: string
+          cuota_actual?: number | null
+          cuota_mensual?: number | null
+          cuotas_totales?: number | null
+          dia_corte?: number | null
+          dia_pago?: number | null
+          entidad?: string | null
+          fecha_base: string
+          fecha_vencimiento?: string | null
+          id?: string
+          limite_credito?: number | null
+          nombre: string
+          notas?: string | null
+          prioridad?: number | null
+          saldo_base: number
+          saldo_cancelacion?: number | null
+          saldo_cancelacion_fecha?: string | null
+          seguro_mensual?: number | null
+          tasa_anual?: number | null
+          tasa_efectiva_anual?: number | null
+          tipo: Database['public']['Enums']['debt_type']
+          user_id?: string
+        }
+        Update: {
+          activa?: boolean
+          cerrada_en?: string | null
+          created_at?: string
+          cuota_actual?: number | null
+          cuota_mensual?: number | null
+          cuotas_totales?: number | null
+          dia_corte?: number | null
+          dia_pago?: number | null
+          entidad?: string | null
+          fecha_base?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          limite_credito?: number | null
+          nombre?: string
+          notas?: string | null
+          prioridad?: number | null
+          saldo_base?: number
+          saldo_cancelacion?: number | null
+          saldo_cancelacion_fecha?: string | null
+          seguro_mensual?: number | null
+          tasa_anual?: number | null
+          tasa_efectiva_anual?: number | null
+          tipo?: Database['public']['Enums']['debt_type']
+          user_id?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          categoria: string
+          created_at: string
+          debt_id: string | null
+          descripcion: string
+          fecha: string
+          id: string
+          metodo: Database['public']['Enums']['payment_method']
+          monto: number
+          periodo: string
+          user_id: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          debt_id?: string | null
+          descripcion: string
+          fecha: string
+          id?: string
+          metodo: Database['public']['Enums']['payment_method']
+          monto: number
+          periodo: string
+          user_id?: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          debt_id?: string | null
+          descripcion?: string
+          fecha?: string
+          id?: string
+          metodo?: Database['public']['Enums']['payment_method']
+          monto?: number
+          periodo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'expenses_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'debts'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'expenses_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_debt_status'
+            referencedColumns: ['debt_id']
+          },
+          {
+            foreignKeyName: 'expenses_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_monthly_balances'
+            referencedColumns: ['debt_id']
+          },
+        ]
+      }
+      monthly_snapshots: {
+        Row: {
+          cuotas_fuera_saldo: number
+          debt_id: string
+          id: string
+          origen: Database['public']['Enums']['snapshot_origin']
+          periodo: string
+          saldo: number
+          user_id: string
+        }
+        Insert: {
+          cuotas_fuera_saldo?: number
+          debt_id: string
+          id?: string
+          origen: Database['public']['Enums']['snapshot_origin']
+          periodo: string
+          saldo: number
+          user_id?: string
+        }
+        Update: {
+          cuotas_fuera_saldo?: number
+          debt_id?: string
+          id?: string
+          origen?: Database['public']['Enums']['snapshot_origin']
+          periodo?: string
+          saldo?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'monthly_snapshots_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'debts'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'monthly_snapshots_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_debt_status'
+            referencedColumns: ['debt_id']
+          },
+          {
+            foreignKeyName: 'monthly_snapshots_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_monthly_balances'
+            referencedColumns: ['debt_id']
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          capital: number | null
+          cargos: number | null
+          created_at: string
+          debt_id: string
+          es_estimado: boolean
+          fecha: string
+          fuente: string | null
+          id: string
+          interes: number | null
+          notas: string | null
+          pago_total: number
+          periodo: string
+          saldo_despues: number
+          user_id: string
+        }
+        Insert: {
+          capital?: number | null
+          cargos?: number | null
+          created_at?: string
+          debt_id: string
+          es_estimado?: boolean
+          fecha: string
+          fuente?: string | null
+          id?: string
+          interes?: number | null
+          notas?: string | null
+          pago_total: number
+          periodo: string
+          saldo_despues: number
+          user_id?: string
+        }
+        Update: {
+          capital?: number | null
+          cargos?: number | null
+          created_at?: string
+          debt_id?: string
+          es_estimado?: boolean
+          fecha?: string
+          fuente?: string | null
+          id?: string
+          interes?: number | null
+          notas?: string | null
+          pago_total?: number
+          periodo?: string
+          saldo_despues?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'payments_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'debts'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'payments_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_debt_status'
+            referencedColumns: ['debt_id']
+          },
+          {
+            foreignKeyName: 'payments_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_monthly_balances'
+            referencedColumns: ['debt_id']
+          },
+        ]
+      }
+      plan_rows: {
+        Row: {
+          debt_id: string | null
+          id: string
+          interes_cargos: number | null
+          pago: number | null
+          periodo: string
+          plan_id: string
+          saldo: number | null
+          user_id: string
+        }
+        Insert: {
+          debt_id?: string | null
+          id?: string
+          interes_cargos?: number | null
+          pago?: number | null
+          periodo: string
+          plan_id: string
+          saldo?: number | null
+          user_id?: string
+        }
+        Update: {
+          debt_id?: string | null
+          id?: string
+          interes_cargos?: number | null
+          pago?: number | null
+          periodo?: string
+          plan_id?: string
+          saldo?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'plan_rows_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'debts'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'plan_rows_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_debt_status'
+            referencedColumns: ['debt_id']
+          },
+          {
+            foreignKeyName: 'plan_rows_debt_id_fkey'
+            columns: ['debt_id']
+            isOneToOne: false
+            referencedRelation: 'v_monthly_balances'
+            referencedColumns: ['debt_id']
+          },
+          {
+            foreignKeyName: 'plan_rows_plan_id_fkey'
+            columns: ['plan_id']
+            isOneToOne: false
+            referencedRelation: 'plans'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          abono_extra: number
+          activo: boolean
+          created_at: string
+          estrategia: Database['public']['Enums']['plan_strategy']
+          fecha_inicio: string
+          id: string
+          nombre: string
+          presupuesto_deudas: number
+          supuestos: Json | null
+          user_id: string
+        }
+        Insert: {
+          abono_extra?: number
+          activo?: boolean
+          created_at?: string
+          estrategia: Database['public']['Enums']['plan_strategy']
+          fecha_inicio: string
+          id?: string
+          nombre: string
+          presupuesto_deudas: number
+          supuestos?: Json | null
+          user_id?: string
+        }
+        Update: {
+          abono_extra?: number
+          activo?: boolean
+          created_at?: string
+          estrategia?: Database['public']['Enums']['plan_strategy']
+          fecha_inicio?: string
+          id?: string
+          nombre?: string
+          presupuesto_deudas?: number
+          supuestos?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          ingreso_mensual: number | null
+          moneda: string
+          nombre: string | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          ingreso_mensual?: number | null
+          moneda?: string
+          nombre?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingreso_mensual?: number | null
+          moneda?: string
+          nombre?: string | null
+        }
+        Relationships: []
+      }
+      receivables: {
+        Row: {
+          created_at: string
+          id: string
+          monto: number
+          notas: string | null
+          persona: string
+          saldo: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          monto: number
+          notas?: string | null
+          persona: string
+          saldo: number
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          monto?: number
+          notas?: string | null
+          persona?: string
+          saldo?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      v_debt_status: View<DebtStatusView>
-      v_user_periods: View<{ user_id: string; periodo: string }>
-      v_monthly_balances: View<MonthlyBalanceView>
-      v_monthly_totals: View<MonthlyTotalsView>
+      v_debt_status: {
+        Row: {
+          activa: boolean | null
+          capital_acumulado: number | null
+          cerrada_en: string | null
+          cuota_mensual: number | null
+          cuotas_fuera_saldo: number | null
+          debt_id: string | null
+          deuda_real: number | null
+          dia_corte: number | null
+          dia_pago: number | null
+          entidad: string | null
+          estado: string | null
+          fecha_base: string | null
+          interes_acumulado: number | null
+          limite_credito: number | null
+          nombre: string | null
+          notas: string | null
+          pagado_acumulado: number | null
+          prioridad: number | null
+          saldo_actual: number | null
+          saldo_base: number | null
+          saldo_cancelacion: number | null
+          saldo_cancelacion_fecha: string | null
+          seguro_mensual: number | null
+          tasa_anual: number | null
+          tipo: Database['public']['Enums']['debt_type'] | null
+          ultimo_pago: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      v_monthly_balances: {
+        Row: {
+          cuotas_fuera_saldo: number | null
+          debt_id: string | null
+          es_registrado: boolean | null
+          nombre: string | null
+          origen: Database['public']['Enums']['snapshot_origin'] | null
+          periodo: string | null
+          saldo: number | null
+          total_real: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      v_monthly_totals: {
+        Row: {
+          capital: number | null
+          compras_tarjeta: number | null
+          cuotas_fuera_saldo: number | null
+          flujo_libre: number | null
+          gastos_fijos: number | null
+          gastos_total: number | null
+          ingreso_mensual: number | null
+          interes_cargos: number | null
+          pagos: number | null
+          periodo: string | null
+          saldo_total: number | null
+          total_real: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      v_user_periods: {
+        Row: {
+          periodo: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      import_initial_data: { Args: { payload: Json }; Returns: Json }
-      reset_my_data: { Args: Record<string, never>; Returns: undefined }
+      current_period: { Args: never; Returns: string }
       debt_fuera_saldo: { Args: { p_debt_id: string }; Returns: number }
-      refresh_snapshot: { Args: { p_debt_id: string; p_periodo: string }; Returns: undefined }
-      current_period: { Args: Record<string, never>; Returns: string }
+      import_initial_data: { Args: { payload: Json }; Returns: Json }
+      refresh_snapshot: {
+        Args: { p_debt_id: string; p_periodo: string }
+        Returns: undefined
+      }
+      reset_my_data: { Args: never; Returns: undefined }
     }
     Enums: {
-      debt_type: DebtType
-      payment_method: PaymentMethod
-      snapshot_origin: SnapshotOrigin
-      plan_strategy: PlanStrategy
+      debt_type: 'tarjeta' | 'prestamo'
+      payment_method: 'efectivo' | 'debito' | 'tarjeta' | 'transferencia'
+      plan_strategy: 'avalancha' | 'bola_nieve' | 'cuotas_fijas'
+      snapshot_origin: 'historial' | 'registro' | 'manual'
     }
-    CompositeTypes: Record<string, never>
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
-type PublicSchema = Database['public']
-export type Tables<T extends keyof PublicSchema['Tables']> = PublicSchema['Tables'][T]['Row']
-export type TablesInsert<T extends keyof PublicSchema['Tables']> = PublicSchema['Tables'][T]['Insert']
-export type Views<T extends keyof PublicSchema['Views']> = PublicSchema['Views'][T]['Row']
-export type Enums<T extends keyof PublicSchema['Enums']> = PublicSchema['Enums'][T]
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    keyof (DefaultSchema['Tables'] & DefaultSchema['Views']) | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      debt_type: ['tarjeta', 'prestamo'],
+      payment_method: ['efectivo', 'debito', 'tarjeta', 'transferencia'],
+      plan_strategy: ['avalancha', 'bola_nieve', 'cuotas_fijas'],
+      snapshot_origin: ['historial', 'registro', 'manual'],
+    },
+  },
+} as const

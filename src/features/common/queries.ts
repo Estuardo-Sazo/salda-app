@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { currentPeriod } from '@/lib/format'
 import type { ImportPayload, PlanSupuestos } from '@/lib/seed/build-payload'
 import { num, numOrNull, supabase } from '@/lib/supabase/client'
-import type { Json, Tables, Views } from '@/lib/supabase/database.types'
+import type { Json, Tables } from '@/lib/supabase/database.types'
 
 export const qk = {
   profile: ['profile'] as const,
@@ -27,9 +27,59 @@ function unwrapMaybe<R extends Result>(res: R): R['data'] {
   return res.data
 }
 
-export type DebtStatus = Views<'v_debt_status'>
-export type MonthlyTotals = Views<'v_monthly_totals'>
-export type MonthlyBalance = Views<'v_monthly_balances'>
+/** Columnas que en la práctica nunca son null (Postgres marca todas las de una vista como null-ables). */
+type WithRequired<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> }
+
+function must<T>(value: T | null | undefined, campo: string): T {
+  if (value == null) throw new Error(`Dato inesperado: ${campo} vino vacío`)
+  return value
+}
+
+export type DebtStatus = WithRequired<
+  Tables<'v_debt_status'>,
+  | 'debt_id'
+  | 'user_id'
+  | 'nombre'
+  | 'tipo'
+  | 'saldo_base'
+  | 'fecha_base'
+  | 'activa'
+  | 'saldo_actual'
+  | 'cuotas_fuera_saldo'
+  | 'deuda_real'
+  | 'interes_acumulado'
+  | 'capital_acumulado'
+  | 'pagado_acumulado'
+> & { estado: 'activa' | 'liquidada' | 'cerrada' }
+
+export type MonthlyTotals = WithRequired<
+  Tables<'v_monthly_totals'>,
+  | 'user_id'
+  | 'periodo'
+  | 'saldo_total'
+  | 'cuotas_fuera_saldo'
+  | 'total_real'
+  | 'pagos'
+  | 'interes_cargos'
+  | 'capital'
+  | 'compras_tarjeta'
+  | 'gastos_total'
+  | 'gastos_fijos'
+  | 'flujo_libre'
+>
+
+export type MonthlyBalance = WithRequired<
+  Tables<'v_monthly_balances'>,
+  | 'user_id'
+  | 'periodo'
+  | 'debt_id'
+  | 'nombre'
+  | 'saldo'
+  | 'cuotas_fuera_saldo'
+  | 'total_real'
+  | 'origen'
+  | 'es_registrado'
+>
 
 export function useProfile() {
   return useQuery({
@@ -54,6 +104,13 @@ export function useDebtStatus() {
       )
       return rows.map((r) => ({
         ...r,
+        debt_id: must(r.debt_id, 'debt_id'),
+        user_id: must(r.user_id, 'user_id'),
+        nombre: must(r.nombre, 'nombre'),
+        tipo: must(r.tipo, 'tipo'),
+        fecha_base: must(r.fecha_base, 'fecha_base'),
+        activa: must(r.activa, 'activa'),
+        estado: must(r.estado, 'estado') as DebtStatus['estado'],
         tasa_anual: numOrNull(r.tasa_anual),
         cuota_mensual: numOrNull(r.cuota_mensual),
         seguro_mensual: numOrNull(r.seguro_mensual),
@@ -78,6 +135,8 @@ export function useMonthlyTotals() {
       const rows = unwrap(await supabase.from('v_monthly_totals').select('*').order('periodo'))
       return rows.map((r) => ({
         ...r,
+        user_id: must(r.user_id, 'user_id'),
+        periodo: must(r.periodo, 'periodo'),
         saldo_total: num(r.saldo_total),
         cuotas_fuera_saldo: num(r.cuotas_fuera_saldo),
         total_real: num(r.total_real),
@@ -101,6 +160,12 @@ export function useMonthlyBalances() {
       const rows = unwrap(await supabase.from('v_monthly_balances').select('*').order('periodo'))
       return rows.map((r) => ({
         ...r,
+        user_id: must(r.user_id, 'user_id'),
+        periodo: must(r.periodo, 'periodo'),
+        debt_id: must(r.debt_id, 'debt_id'),
+        nombre: must(r.nombre, 'nombre'),
+        origen: must(r.origen, 'origen'),
+        es_registrado: must(r.es_registrado, 'es_registrado'),
         saldo: num(r.saldo),
         cuotas_fuera_saldo: num(r.cuotas_fuera_saldo),
         total_real: num(r.total_real),
