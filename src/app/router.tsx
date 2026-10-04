@@ -4,6 +4,7 @@ import { ComingSoon } from '@/components/common'
 import { AppLayout } from '@/components/layout/app-layout'
 import { LoginPage } from '@/features/auth/login-page'
 import { DashboardPage } from '@/features/dashboard/dashboard-page'
+import { DataPage } from '@/features/data/data-page'
 import { DebtDetailPage } from '@/features/debts/debt-detail-page'
 import { DebtFormPage } from '@/features/debts/debt-form-page'
 import { DebtsPage } from '@/features/debts/debts-page'
@@ -45,7 +46,7 @@ export const router = createBrowserRouter([
           { path: 'mas', element: <MorePage /> },
           { path: 'mas/ingresos-extra', element: <ExtraIncomePage /> },
           { path: 'mas/cobros', element: <ComingSoon title="Dinero que me deben" fase={7} /> },
-          { path: 'mas/exportar', element: <ComingSoon title="Importar / exportar" fase={7} /> },
+          { path: 'mas/exportar', element: <DataPage /> },
           { path: '*', element: <Navigate to="/" replace /> },
         ],
       },

@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { useImportData } from '@/features/common/queries'
+import { ImportPanel } from '@/features/data/import-panel'
 import { formatGTQ, formatPeriod } from '@/lib/format'
 import { buildSeedPayload } from '@/lib/seed/build-payload'
 import { bundledSeed, isExampleSeed, parseSeed } from '@/lib/seed/load'
@@ -210,9 +211,10 @@ export function OnboardingPage() {
           <Option
             icon={FileSpreadsheet}
             title="Importar Excel"
-            description="Sube Control_deudas.xlsx con vista previa y validación."
-            badge="Fase 7"
-          />
+            description="Subí Control_deudas.xlsx o un respaldo de Saldá. Vas a ver una vista previa con validación."
+          >
+            <ImportPanel onImported={() => navigate('/', { replace: true })} />
+          </Option>
         </div>
       </div>
     </div>
