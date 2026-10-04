@@ -530,32 +530,73 @@ export type Database = {
         }
         Relationships: []
       }
-      receivables: {
+      receivable_payments: {
         Row: {
           created_at: string
+          fecha: string
           id: string
           monto: number
           notas: string | null
-          persona: string
-          saldo: number
+          receivable_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          fecha: string
           id?: string
           monto: number
           notas?: string | null
-          persona: string
-          saldo: number
+          receivable_id: string
           user_id?: string
         }
         Update: {
           created_at?: string
+          fecha?: string
+          id?: string
+          monto?: number
+          notas?: string | null
+          receivable_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'receivable_payments_receivable_id_fkey'
+            columns: ['receivable_id']
+            isOneToOne: false
+            referencedRelation: 'receivables'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      receivables: {
+        Row: {
+          created_at: string
+          fecha_prestamo: string
+          id: string
+          monto: number
+          notas: string | null
+          persona: string
+          tasa_mensual: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fecha_prestamo?: string
+          id?: string
+          monto: number
+          notas?: string | null
+          persona: string
+          tasa_mensual?: number | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          fecha_prestamo?: string
           id?: string
           monto?: number
           notas?: string | null
           persona?: string
-          saldo?: number
+          tasa_mensual?: number | null
           user_id?: string
         }
         Relationships: []
