@@ -7,6 +7,7 @@ import { Navigate, useLocation } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { useAuth } from '@/app/providers/auth'
+import { GoogleSignIn } from './google-sign-in'
 import { LogoMark } from '@/components/brand/logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -188,6 +189,9 @@ export function LoginPage() {
                 <h1 className="text-2xl font-semibold tracking-tight">Entrá a Saldá</h1>
                 <p className="text-muted-foreground mt-1 text-sm">Tus datos solo los ves vos.</p>
               </div>
+            </div>
+            <div className="mb-4">
+              <GoogleSignIn />
             </div>
             <Tabs defaultValue="magic">
               <TabsList className="mb-4 grid w-full grid-cols-2">
