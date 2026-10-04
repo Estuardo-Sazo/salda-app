@@ -153,7 +153,7 @@ export function LoginPage() {
         </div>
         <div className="max-w-md">
           <p className="text-4xl leading-tight font-semibold tracking-tight">
-            Cada pago te acerca al <span className="text-lime">punto final</span>.
+            Cada pago te acerca al <span className="text-gold">punto final</span>.
           </p>
           <p className="text-ink-foreground/70 mt-4">
             Registrá pagos y gastos en segundos, mirá cuánto se va en intereses y seguí tu plan para quedar libre de
@@ -167,8 +167,8 @@ export function LoginPage() {
           className="pointer-events-none absolute right-0 bottom-24 w-[70%] opacity-25"
           fill="none"
         >
-          <path d="M0 20 C120 30 160 110 260 140 S380 180 400 180" stroke="#86F7CF" strokeWidth="3" />
-          <circle cx="396" cy="180" r="7" fill="#D4FF5E" />
+          <path d="M0 20 C120 30 160 110 260 140 S380 180 400 180" className="stroke-quetzal" strokeWidth="3" />
+          <circle cx="396" cy="180" r="7" className="fill-gold" />
         </svg>
       </section>
 

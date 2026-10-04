@@ -305,7 +305,7 @@ export function DebtDetailPage() {
       </Button>
 
       <header className="flex items-start gap-3">
-        <span className="bg-ink text-mint grid size-12 shrink-0 place-items-center rounded-2xl">
+        <span className="bg-ink text-quetzal grid size-12 shrink-0 place-items-center rounded-2xl">
           <Icon className="size-6" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
@@ -354,7 +354,7 @@ export function DebtDetailPage() {
             )}
           </div>
           {activa && (
-            <Button asChild className="bg-lime text-ink hover:bg-lime/90 h-11">
+            <Button asChild className="bg-gold text-ink hover:bg-gold/90 h-11">
               <Link to={`/registrar/pago?deuda=${id}&volver=/deudas/${id}`}>
                 <Plus /> Registrar pago
               </Link>
@@ -364,7 +364,7 @@ export function DebtDetailPage() {
         <div>
           <Progress
             value={progreso}
-            className="bg-ink-foreground/15 h-2 [&>div]:bg-(--mint)"
+            className="bg-ink-foreground/15 h-2 [&>div]:bg-(--quetzal)"
             aria-label="Avance contra el saldo base"
           />
           <p className="text-ink-foreground/70 mt-1.5 flex justify-between text-xs">

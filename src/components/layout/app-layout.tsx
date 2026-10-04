@@ -126,7 +126,7 @@ function QuickAddSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o
               onClick={() => go(to)}
               className="bg-card hover:border-primary/40 hover:bg-accent focus-visible:ring-ring/50 flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition focus-visible:ring-3 focus-visible:outline-none"
             >
-              <span className="bg-ink text-mint grid size-10 place-items-center rounded-xl">
+              <span className="bg-ink text-quetzal grid size-10 place-items-center rounded-xl">
                 <Icon className="size-5" aria-hidden />
               </span>
               <span>
@@ -241,7 +241,7 @@ export function AppLayout() {
                   type="button"
                   onClick={() => setQuickAdd(true)}
                   aria-label="Registrar pago o gasto"
-                  className="bg-ink text-lime ring-background -mt-5 grid size-14 place-items-center rounded-2xl shadow-lg ring-4 transition active:scale-95"
+                  className="bg-ink text-gold ring-background -mt-5 grid size-14 place-items-center rounded-2xl shadow-lg ring-4 transition active:scale-95"
                 >
                   <Plus className="size-6" strokeWidth={2.5} />
                 </button>

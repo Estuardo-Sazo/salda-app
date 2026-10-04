@@ -38,7 +38,7 @@ function Option({
     <Card className={highlighted ? 'ring-primary/60 ring-2' : undefined}>
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
-          <span className="bg-ink text-mint grid size-10 place-items-center rounded-xl">
+          <span className="bg-ink text-quetzal grid size-10 place-items-center rounded-xl">
             <Icon className="size-5" aria-hidden />
           </span>
           {badge && <Badge variant="secondary">{badge}</Badge>}

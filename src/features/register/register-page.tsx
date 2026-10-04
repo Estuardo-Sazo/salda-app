@@ -18,7 +18,7 @@ export function RegisterPage() {
             to={to}
             className="bg-card hover:border-primary/40 hover:bg-accent flex items-center gap-4 rounded-2xl border p-5 transition"
           >
-            <span className="bg-ink text-mint grid size-12 place-items-center rounded-xl">
+            <span className="bg-ink text-quetzal grid size-12 place-items-center rounded-xl">
               <Icon className="size-6" aria-hidden />
             </span>
             <span>

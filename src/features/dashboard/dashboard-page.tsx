@@ -94,7 +94,7 @@ function Hero({ model }: { model: DashboardModel }) {
       >
         <path
           d="M0 12 C110 22 170 92 260 117 S360 140 386 140"
-          stroke="#86F7CF"
+          className="stroke-quetzal"
           strokeWidth="3"
           fill="none"
           vectorEffect="non-scaling-stroke"
@@ -109,7 +109,7 @@ function Hero({ model }: { model: DashboardModel }) {
 
       <div className="mt-5 flex flex-wrap gap-2">
         {model.libre && (
-          <span className="bg-lime text-ink inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium">
+          <span className="bg-gold text-ink inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium">
             <Flag className="size-4" aria-hidden />
             Libre de deudas en {model.libre.meses} {model.libre.meses === 1 ? 'mes' : 'meses'} ·{' '}
             {formatPeriod(model.libre.periodo)}
@@ -119,7 +119,7 @@ function Hero({ model }: { model: DashboardModel }) {
           <span
             className={cn(
               'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium',
-              adelantado ? 'bg-mint/20 text-mint' : 'bg-destructive/25 text-red-200',
+              adelantado ? 'bg-quetzal/20 text-quetzal' : 'bg-destructive/25 text-red-200',
             )}
           >
             {adelantado ? (

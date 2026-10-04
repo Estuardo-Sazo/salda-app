@@ -523,7 +523,7 @@ function PlanStep({
       {resumen && (
         <section aria-live="polite" className="bg-ink text-ink-foreground grid gap-2 rounded-2xl p-4">
           <p className="flex items-center gap-2 text-lg font-semibold">
-            <Flag className="text-lime size-5" aria-hidden />
+            <Flag className="text-gold size-5" aria-hidden />
             {resumen.periodo_libre
               ? `Libre de deudas en ${formatPeriodLong(resumen.periodo_libre)}`
               : 'Con este presupuesto no terminás en 10 años'}
