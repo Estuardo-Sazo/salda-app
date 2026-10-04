@@ -1,14 +1,9 @@
+import { useSyncExternalStore } from 'react'
+import { DEFAULT_CURRENCY, formatCurrency, formatCurrencyCompact, isValidCurrency } from '@/lib/finance/currency'
 import { parsePeriod, toPeriod } from '@/lib/finance/period'
 
 export const TIME_ZONE = 'America/Guatemala'
 
-const currency = new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ' })
-const currencyCompact = new Intl.NumberFormat('es-GT', {
-  style: 'currency',
-  currency: 'GTQ',
-  notation: 'compact',
-  maximumFractionDigits: 1,
-})
 const percent = new Intl.NumberFormat('es-GT', { style: 'percent', maximumFractionDigits: 2 })
 
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
@@ -27,17 +22,58 @@ const MESES_LARGOS = [
   'diciembre',
 ]
 
-/** es-GT separa el símbolo con un espacio ("Q 1,234.56"); el plan usa "Q1,234.56". */
-const tightSymbol = (text: string) => text.replace(/Q\s/u, 'Q')
+/* ------------------------------------------------------------------ moneda del usuario */
 
-/** Q1,234.56 */
-export function formatGTQ(value: number | null | undefined): string {
-  return tightSymbol(currency.format(value ?? 0))
+const CURRENCY_KEY = 'salda-moneda'
+const currencyListeners = new Set<() => void>()
+
+function readStoredCurrency(): string {
+  try {
+    const c = localStorage.getItem(CURRENCY_KEY)
+    return c && isValidCurrency(c) ? c : DEFAULT_CURRENCY
+  } catch {
+    return DEFAULT_CURRENCY
+  }
 }
 
-/** Q61.6 mil — para ejes de gráficas. */
-export function formatGTQCompact(value: number): string {
-  return tightSymbol(currencyCompact.format(value))
+/** Se recuerda en el dispositivo para que la app abra con la moneda correcta antes de leer el perfil. */
+let currentCurrency = typeof window === 'undefined' ? DEFAULT_CURRENCY : readStoredCurrency()
+
+export const getCurrency = () => currentCurrency
+
+/** Cambia la moneda con la que se formatean todos los montos (la del perfil del usuario). */
+export function setCurrency(code: string | null | undefined) {
+  const next = code && isValidCurrency(code) ? code : DEFAULT_CURRENCY
+  if (next === currentCurrency) return
+  currentCurrency = next
+  try {
+    localStorage.setItem(CURRENCY_KEY, next)
+  } catch {
+    // Sin almacenamiento: dura solo esta sesión.
+  }
+  currencyListeners.forEach((l) => l())
+}
+
+/** Moneda actual como estado de React (para volver a pintar al cambiarla). */
+export function useCurrency(): string {
+  return useSyncExternalStore(
+    (l) => {
+      currencyListeners.add(l)
+      return () => currencyListeners.delete(l)
+    },
+    getCurrency,
+    () => DEFAULT_CURRENCY,
+  )
+}
+
+/** Monto en la moneda del usuario: "Q1,234.56", "$1,234.56"… */
+export function formatMoney(value: number | null | undefined): string {
+  return formatCurrency(value, currentCurrency)
+}
+
+/** "Q61.6 mil" — para ejes de gráficas. */
+export function formatMoneyCompact(value: number): string {
+  return formatCurrencyCompact(value, currentCurrency)
 }
 
 export function formatPercent(value: number | null | undefined): string {

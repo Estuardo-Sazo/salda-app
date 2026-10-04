@@ -1,7 +1,7 @@
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { axisProps } from '@/features/dashboard/chart-style'
 import { ChartTooltip, LegendContent } from '@/features/dashboard/charts'
-import { formatGTQCompact, formatPeriodShort } from '@/lib/format'
+import { formatMoneyCompact, formatPeriodShort } from '@/lib/format'
 
 export interface LineSeries {
   key: string
@@ -28,7 +28,7 @@ export function PlanLinesChart({
           <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
             <XAxis dataKey="periodo" tickFormatter={formatPeriodShort} minTickGap={16} {...axisProps} />
-            <YAxis tickFormatter={formatGTQCompact} width={64} {...axisProps} />
+            <YAxis tickFormatter={formatMoneyCompact} width={64} {...axisProps} />
             <Tooltip content={ChartTooltip} cursor={{ stroke: 'var(--border)', strokeWidth: 1 }} />
             {series.map((s) => (
               <Line

@@ -28,7 +28,7 @@ import {
   useMonthlyTotals,
   usePeriodPayments,
 } from '@/features/common/queries'
-import { currentPeriod, formatDate, formatGTQ, formatPercent, formatPeriod, formatPeriodLong } from '@/lib/format'
+import { currentPeriod, formatDate, formatMoney, formatPercent, formatPeriod, formatPeriodLong } from '@/lib/format'
 import { usePeriodExpenses } from '@/features/expenses/api'
 import { useExtraIncomes } from '@/features/income/api'
 import { Button } from '@/components/ui/button'
@@ -76,7 +76,7 @@ function Delta({ value }: { value: number | null }) {
     <span className={cn('inline-flex items-center gap-1', bajo ? 'text-success' : 'text-destructive')}>
       <Icon className="size-5" aria-hidden />
       <span className="sr-only">{bajo ? 'Bajó' : 'Subió'}</span>
-      {formatGTQ(Math.abs(value))}
+      {formatMoney(Math.abs(value))}
     </span>
   )
 }
@@ -101,10 +101,10 @@ function Hero({ model }: { model: DashboardModel }) {
         />
       </svg>
       <p className="text-ink-foreground/70 text-sm">Deuda total real · {formatPeriod(model.periodo)}</p>
-      <p className="tabular mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">{formatGTQ(model.deudaReal)}</p>
+      <p className="tabular mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">{formatMoney(model.deudaReal)}</p>
       <p className="text-ink-foreground/70 mt-2 text-sm">
-        Saldos <span className="tabular text-ink-foreground">{formatGTQ(model.saldoTotal)}</span> + cuotas fuera de
-        saldo <span className="tabular text-ink-foreground">{formatGTQ(model.cuotasFuera)}</span>
+        Saldos <span className="tabular text-ink-foreground">{formatMoney(model.saldoTotal)}</span> + cuotas fuera de
+        saldo <span className="tabular text-ink-foreground">{formatMoney(model.cuotasFuera)}</span>
       </p>
 
       <div className="mt-5 flex flex-wrap gap-2">
@@ -127,7 +127,7 @@ function Hero({ model }: { model: DashboardModel }) {
             ) : (
               <AlertOctagon className="size-4" aria-hidden />
             )}
-            Vas {formatGTQ(Math.abs(meta.diferencia))} {adelantado ? 'adelantado' : 'atrasado'} vs la meta
+            Vas {formatMoney(Math.abs(meta.diferencia))} {adelantado ? 'adelantado' : 'atrasado'} vs la meta
           </span>
         ) : (
           model.metaInicio && (
@@ -222,13 +222,13 @@ function CardPurchasesAlert({ model }: { model: DashboardModel }) {
         <div className="min-w-0 flex-1 text-sm">
           <p className="text-destructive font-semibold">Deuda nueva este mes</p>
           <p className="text-muted-foreground">
-            Agregaste <span className="text-foreground tabular font-medium">{formatGTQ(model.comprasTarjeta)}</span> de
+            Agregaste <span className="text-foreground tabular font-medium">{formatMoney(model.comprasTarjeta)}</span> de
             deuda nueva con tarjeta
             {model.compras.tasa != null && (
               <>
                 {' '}
                 al ~{formatPercent(model.compras.tasa)} anual: ≈{' '}
-                <span className="text-foreground font-medium">{formatGTQ(model.compras.interesMes)}</span> de interés
+                <span className="text-foreground font-medium">{formatMoney(model.compras.interesMes)}</span> de interés
                 por mes si no la pagás completa
               </>
             )}
@@ -334,7 +334,7 @@ export function DashboardView({ model, alerts = [] }: { model: DashboardModel; a
           icon={Percent}
           label="Se fue en intereses"
           hint={
-            model.pagosMes > 0 ? `${formatGTQ(model.interesesMes)} de ${formatGTQ(model.pagosMes)}` : 'sin pagos aún'
+            model.pagosMes > 0 ? `${formatMoney(model.interesesMes)} de ${formatMoney(model.pagosMes)}` : 'sin pagos aún'
           }
         >
           {formatPercent(model.pctIntereses)}
@@ -345,7 +345,7 @@ export function DashboardView({ model, alerts = [] }: { model: DashboardModel; a
           tone={(model.flujoLibre ?? 0) >= 0 ? 'good' : 'bad'}
           hint="ingreso − fijos − pagos"
         >
-          {model.flujoLibre == null ? '—' : formatGTQ(model.flujoLibre)}
+          {model.flujoLibre == null ? '—' : formatMoney(model.flujoLibre)}
         </StatTile>
       </div>
 

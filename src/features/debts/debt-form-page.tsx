@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { formatGTQ, todayISO } from '@/lib/format'
+import { formatMoney, todayISO } from '@/lib/format'
 import { parseAmount, toInput } from '@/lib/forms'
 import { useDebt, useSaveDebt, type Debt } from './api'
 import { debtSchema, type DebtFormInput, type DebtFormOutput } from './schema'
@@ -216,7 +216,7 @@ export function DebtFormPage() {
             {text(
               'tasa_mensual',
               'Interés mensual',
-              cargoMensual != null ? `= ${formatGTQ(cargoMensual)} por mes` : 'Sobre el monto original',
+              cargoMensual != null ? `= ${formatMoney(cargoMensual)} por mes` : 'Sobre el monto original',
               '%',
             )}
           </>

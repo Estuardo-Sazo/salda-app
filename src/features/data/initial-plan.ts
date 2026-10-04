@@ -63,6 +63,7 @@ export function sourcesFromPayload(p: RestorePayload, periodoActual: string): Pl
     ingresoMensual: p.profile?.ingreso_mensual ?? null,
     gastosFijos: p.budget_items.filter((b) => b.activo).reduce((acc, b) => acc + Math.round(b.monto * 100), 0) / 100,
     ingresosExtra: p.extra_incomes,
+    moneda: p.profile?.moneda ?? null,
   }
 }
 

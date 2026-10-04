@@ -32,7 +32,7 @@ import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { monthlyInterest, owedAt, receivableStatus, type ReceivableStatus } from '@/lib/finance/receivable'
-import { formatDate, formatGTQ, formatPercent, todayISO } from '@/lib/format'
+import { formatDate, formatMoney, formatPercent, todayISO } from '@/lib/format'
 import { dateField, moneyField, optionalPercentField, optionalText, parseAmount, toInput } from '@/lib/forms'
 import { cn } from '@/lib/utils'
 import {
@@ -51,7 +51,7 @@ const terms = (r: Receivable) => ({ monto: r.monto, tasaMensual: r.tasa_mensual,
 
 const schema = z.object({
   persona: z.string().trim().min(1, '¿Quién te debe?').max(60),
-  monto: moneyField('Ingresá cuánto prestaste').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+  monto: moneyField('Ingresá cuánto prestaste').refine((v) => v > 0, 'Debe ser mayor a cero'),
   fecha_prestamo: dateField('¿Cuándo lo prestaste?'),
   tasa_mensual: optionalPercentField(),
   notas: optionalText(),
@@ -125,7 +125,7 @@ function ReceivableDialog({
             error={e.tasa_mensual?.message}
             hint={
               interes != null && interes > 0
-                ? `= ${formatGTQ(interes)} por mes. Vacío = sin interés.`
+                ? `= ${formatMoney(interes)} por mes. Vacío = sin interés.`
                 : 'Ej. 10 = 10 % al mes. Vacío = sin interés.'
             }
           >
@@ -160,7 +160,7 @@ function ReceivableDialog({
 
 const cobroSchema = z.object({
   fecha: dateField('¿Cuándo te pagaron?'),
-  monto: moneyField('Ingresá cuánto te pagaron').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+  monto: moneyField('Ingresá cuánto te pagaron').refine((v) => v > 0, 'Debe ser mayor a cero'),
   notas: optionalText(),
 })
 type CobroInput = z.input<typeof cobroSchema>
@@ -190,8 +190,8 @@ function CobroDialog({ item, onClose }: { item: Receivable | null; onClose: () =
       const despues = receivableStatus(terms(item), [...item.cobros, values], todayISO())
       toast.success(
         despues.liquidado
-          ? `${item.persona} terminó de pagar. Ganaste ${formatGTQ(despues.interesGenerado)} de interés.`
-          : `Cobro de ${formatGTQ(values.monto)} registrado. Falta ${formatGTQ(despues.pendiente)}.`,
+          ? `${item.persona} terminó de pagar. Ganaste ${formatMoney(despues.interesGenerado)} de interés.`
+          : `Cobro de ${formatMoney(values.monto)} registrado. Falta ${formatMoney(despues.pendiente)}.`,
       )
       onClose()
     } catch (err) {
@@ -277,9 +277,9 @@ function ReceivableItem({
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{item.persona}</p>
           <p className="text-muted-foreground text-xs">
-            Prestaste {formatGTQ(item.monto)} el {formatDate(item.fecha_prestamo)}
+            Prestaste {formatMoney(item.monto)} el {formatDate(item.fecha_prestamo)}
             {item.tasa_mensual != null
-              ? ` · ${formatPercent(item.tasa_mensual)} mensual (${formatGTQ(status.interesMensual)})`
+              ? ` · ${formatPercent(item.tasa_mensual)} mensual (${formatMoney(status.interesMensual)})`
               : ' · sin interés'}
           </p>
         </div>
@@ -306,15 +306,15 @@ function ReceivableItem({
         </div>
         <div>
           <dt className="text-muted-foreground">Total con interés</dt>
-          <dd className="font-medium">{formatGTQ(status.total)}</dd>
+          <dd className="font-medium">{formatMoney(status.total)}</dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Cobrado</dt>
-          <dd className="font-medium">{formatGTQ(status.cobrado)}</dd>
+          <dd className="font-medium">{formatMoney(status.cobrado)}</dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Interés ganado</dt>
-          <dd className="text-success font-medium">{formatGTQ(status.gananciaCobrada)}</dd>
+          <dd className="text-success font-medium">{formatMoney(status.gananciaCobrada)}</dd>
         </div>
       </dl>
 
@@ -322,7 +322,7 @@ function ReceivableItem({
         <p className="text-warning-foreground flex items-center gap-1.5 text-xs">
           <CalendarClock className="size-3.5 shrink-0" aria-hidden />
           Desde el {formatDate(status.proximoAumento)} te deberá{' '}
-          {formatGTQ(Math.round((status.pendiente + status.interesMensual) * 100) / 100)}.
+          {formatMoney(Math.round((status.pendiente + status.interesMensual) * 100) / 100)}.
         </p>
       )}
       {item.notas && <p className="text-muted-foreground text-xs">{item.notas}</p>}

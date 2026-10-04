@@ -41,6 +41,8 @@ export interface PlanSources {
   ingresoMensual: number | null
   gastosFijos: number
   ingresosExtra: { periodo: string; monto: number }[]
+  /** Moneda del perfil (para los textos del plan). */
+  moneda?: string | null
 }
 
 export interface PlanOptions {
@@ -114,6 +116,7 @@ export function buildPlanInput(src: PlanSources, opts: PlanOptions): PlanInput {
     ingresoMensual: src.ingresoMensual ?? undefined,
     gastosFijos: src.gastosFijos,
     ingresosExtra,
+    moneda: src.moneda ?? undefined,
   }
 }
 

@@ -65,7 +65,7 @@ export type DebtFormOutput = z.output<typeof debtSchema>
 export const installmentSchema = z
   .object({
     descripcion: z.string().trim().min(1, 'Describí la compra (ej. "Celular en visacuotas")'),
-    monto_cuota: moneyField('Ingresá el monto de cada cuota').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+    monto_cuota: moneyField('Ingresá el monto de cada cuota').refine((v) => v > 0, 'Debe ser mayor a cero'),
     cuotas_totales: optionalIntField(1, 120).pipe(z.number({ invalid_type_error: 'Requerido' })),
     cuotas_cobradas: optionalIntField(0, 120).transform((v) => v ?? 0),
     capital_pendiente: optionalMoneyField(),

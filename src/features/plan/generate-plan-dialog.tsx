@@ -44,7 +44,7 @@ const ESTRATEGIA_HINT: Record<Strategy, string> = {
 const schema = z.object({
   nombre: z.string().trim().max(80),
   estrategia: z.enum(['avalancha', 'bola_nieve', 'cuotas_fijas']),
-  presupuesto: moneyField('Ingresá el presupuesto mensual para deudas').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+  presupuesto: moneyField('Ingresá el presupuesto mensual para deudas').refine((v) => v > 0, 'Debe ser mayor a cero'),
   abonoExtra: moneyField(),
   activo: z.boolean(),
 })

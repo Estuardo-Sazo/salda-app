@@ -1,7 +1,7 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { axisProps } from '@/features/dashboard/chart-style'
 import { ChartTooltip, LegendContent } from '@/features/dashboard/charts'
-import { formatGTQCompact, formatPeriodShort } from '@/lib/format'
+import { formatMoneyCompact, formatPeriodShort } from '@/lib/format'
 
 /** Pagos de cada mes separados en capital (lo que baja la deuda) e interés + cargos (costo). */
 export function PaymentsSplitChart({ data }: { data: { periodo: string; capital: number; interes: number }[] }) {
@@ -20,7 +20,7 @@ export function PaymentsSplitChart({ data }: { data: { periodo: string; capital:
           <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="30%">
             <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
             <XAxis dataKey="periodo" tickFormatter={formatPeriodShort} minTickGap={8} {...axisProps} />
-            <YAxis tickFormatter={formatGTQCompact} width={64} {...axisProps} />
+            <YAxis tickFormatter={formatMoneyCompact} width={64} {...axisProps} />
             <Tooltip content={ChartTooltip} cursor={{ fill: 'var(--muted)', opacity: 0.6 }} />
             <Bar
               name="Capital"

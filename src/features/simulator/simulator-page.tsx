@@ -24,7 +24,7 @@ import {
   type PlanSources,
 } from '@/features/plan/plan-input'
 import type { Strategy } from '@/lib/finance'
-import { currentPeriod, formatGTQ, formatPercent, formatPeriod } from '@/lib/format'
+import { currentPeriod, formatMoney, formatPercent, formatPeriod } from '@/lib/format'
 import { parseAmount, toInput } from '@/lib/forms'
 import { cn } from '@/lib/utils'
 import {
@@ -125,7 +125,7 @@ function Delta({ value, lowerIsBetter = true }: { value: number; lowerIsBetter?:
     <span className={cn('tabular font-medium', good ? 'text-success' : 'text-destructive')}>
       <span className="sr-only">{good ? 'Mejor: ' : 'Peor: '}</span>
       {value > 0 ? '+' : '−'}
-      {formatGTQ(Math.abs(value))}
+      {formatMoney(Math.abs(value))}
     </span>
   )
 }
@@ -200,8 +200,8 @@ function Results({ sim, labelB, hasIncome }: { sim: Simulation; labelB: string; 
                   <th scope="row" className={rowTh}>
                     Intereses y cargos
                   </th>
-                  <td className={td}>{formatGTQ(c.interesCargos.a)}</td>
-                  <td className={td}>{formatGTQ(c.interesCargos.b)}</td>
+                  <td className={td}>{formatMoney(c.interesCargos.a)}</td>
+                  <td className={td}>{formatMoney(c.interesCargos.b)}</td>
                   <td className={td}>
                     <Delta value={c.interesCargos.diferencia} />
                   </td>
@@ -210,8 +210,8 @@ function Results({ sim, labelB, hasIncome }: { sim: Simulation; labelB: string; 
                   <th scope="row" className={rowTh}>
                     Total pagado
                   </th>
-                  <td className={td}>{formatGTQ(c.totalPagado.a)}</td>
-                  <td className={td}>{formatGTQ(c.totalPagado.b)}</td>
+                  <td className={td}>{formatMoney(c.totalPagado.a)}</td>
+                  <td className={td}>{formatMoney(c.totalPagado.b)}</td>
                   <td className={td}>
                     <Delta value={c.totalPagado.diferencia} />
                   </td>
@@ -224,8 +224,8 @@ function Results({ sim, labelB, hasIncome }: { sim: Simulation; labelB: string; 
                         acumulado en {meses(c.horizonte)}
                       </span>
                     </th>
-                    <td className={td}>{formatGTQ(c.flujoLibre.a)}</td>
-                    <td className={td}>{formatGTQ(c.flujoLibre.b)}</td>
+                    <td className={td}>{formatMoney(c.flujoLibre.a)}</td>
+                    <td className={td}>{formatMoney(c.flujoLibre.b)}</td>
                     <td className={td}>
                       <Delta value={c.flujoLibre.diferencia} lowerIsBetter={false} />
                     </td>
@@ -336,9 +336,9 @@ function StrategyTab({ sources, actual, ctx }: TabProps) {
         <CardHeader>
           <CardTitle>Escenario</CardTitle>
           <CardDescription>
-            Plan actual: {ESTRATEGIA_LABEL[actual.estrategia].toLowerCase()} con {formatGTQ(actual.presupuestoDeudas)}{' '}
+            Plan actual: {ESTRATEGIA_LABEL[actual.estrategia].toLowerCase()} con {formatMoney(actual.presupuestoDeudas)}{' '}
             al mes
-            {actual.abonoExtra > 0 && ` + ${formatGTQ(actual.abonoExtra)}`}.
+            {actual.abonoExtra > 0 && ` + ${formatMoney(actual.abonoExtra)}`}.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
@@ -354,7 +354,7 @@ function StrategyTab({ sources, actual, ctx }: TabProps) {
             max={bounds.max}
             hint={
               libre != null
-                ? `Tu ingreso menos gastos fijos deja ${formatGTQ(libre)} al mes.`
+                ? `Tu ingreso menos gastos fijos deja ${formatMoney(libre)} al mes.`
                 : 'Registrá tu ingreso en Más para ver el flujo libre.'
             }
           />
@@ -594,7 +594,7 @@ function ConsolidationTab({ sources, actual, ctx }: TabProps) {
                         {modo === 'cuota' ? 'Tasa implícita' : 'Cuota mensual'}
                       </dt>
                       <dd className="tabular font-semibold">
-                        {modo === 'cuota' ? `${formatPercent(setup.tasaAnual)} anual` : formatGTQ(setup.cuota)}
+                        {modo === 'cuota' ? `${formatPercent(setup.tasaAnual)} anual` : formatMoney(setup.cuota)}
                       </dd>
                     </div>
                     <div>

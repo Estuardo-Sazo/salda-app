@@ -27,6 +27,8 @@ export interface WizardInstallment {
 }
 
 export interface WizardState {
+  /** Código ISO de la moneda elegida en el primer paso. */
+  moneda: string
   nombre: string
   ingreso: number | null
   gastosFijos: { concepto: string; monto: number }[]
@@ -79,7 +81,7 @@ export function buildWizardPayload(
     }))
 
   const payload: RestorePayload = {
-    profile: { nombre: w.nombre.trim() || null, ingreso_mensual: w.ingreso, moneda: 'GTQ' },
+    profile: { nombre: w.nombre.trim() || null, ingreso_mensual: w.ingreso, moneda: w.moneda },
     budget_items: w.gastosFijos.map((g, i) => ({
       concepto: g.concepto.trim(),
       monto: g.monto,

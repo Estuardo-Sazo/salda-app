@@ -13,6 +13,19 @@ describe('parseAmount', () => {
     expect(parseAmount('abc')).toBeNaN()
   })
 
+  it('acepta símbolos de otras monedas y la coma decimal', () => {
+    expect(parseAmount('$1,234.56')).toBe(1234.56)
+    expect(parseAmount('S/ 10')).toBe(10)
+    expect(parseAmount('10 €', ',')).toBe(10)
+    expect(parseAmount('$ 1.234,56', ',')).toBe(1234.56)
+    expect(parseAmount('1.234.567', ',')).toBe(1234567)
+    expect(parseAmount('1.234', ',')).toBe(1234)
+    // En monedas con punto decimal, "1.234" sigue siendo uno coma dos.
+    expect(parseAmount('1.234', '.')).toBe(1.23)
+    expect(parseAmount('12,5', ',')).toBe(12.5)
+    expect(parseAmount('Q')).toBeNaN()
+  })
+
   it('toInput convierte de vuelta para editar', () => {
     expect(toInput(null)).toBe('')
     expect(toInput(0.6, 100)).toBe('60')

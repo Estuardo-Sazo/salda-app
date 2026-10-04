@@ -2,11 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { ArrowLeft, ArrowRight, CreditCard, Flag, Landmark, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { Money, PendingBadge } from '@/components/common'
+import { CurrencySelect } from '@/components/currency-select'
 import { ChoiceChip, Field, MoneyInput } from '@/components/form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,7 +15,8 @@ import { Input } from '@/components/ui/input'
 import { useImportPayload } from '@/features/data/api'
 import { ESTRATEGIA_LABEL } from '@/features/plan/plan-input'
 import type { Strategy } from '@/lib/finance'
-import { currentPeriod, formatGTQ, formatPercent, formatPeriodLong, todayISO } from '@/lib/format'
+import { formatCurrency, guessCurrency, isValidCurrency } from '@/lib/finance/currency'
+import { currentPeriod, formatPercent, formatPeriodLong, setCurrency, todayISO } from '@/lib/format'
 import {
   moneyField,
   optionalIntField,
@@ -34,32 +36,50 @@ const SUGERENCIAS_FIJOS = ['Comida', 'Alquiler', 'Luz', 'Agua', 'Internet', 'Tel
 
 const ingresoSchema = z.object({
   nombre: z.string().trim().max(60),
-  ingreso: moneyField('Ingresá tu ingreso mensual neto').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+  moneda: z.string().refine(isValidCurrency, 'Elegí una moneda o escribí un código válido de 3 letras'),
+  ingreso: moneyField('Ingresá tu ingreso mensual neto').refine((v) => v > 0, 'Debe ser mayor a cero'),
 })
 
 function IngresoStep({ state, onNext }: { state: WizardState; onNext: (s: Partial<WizardState>) => void }) {
   const form = useForm<z.input<typeof ingresoSchema>, unknown, z.output<typeof ingresoSchema>>({
     resolver: zodResolver(ingresoSchema),
-    defaultValues: { nombre: state.nombre, ingreso: toInput(state.ingreso) },
+    defaultValues: { nombre: state.nombre, moneda: state.moneda, ingreso: toInput(state.ingreso) },
   })
   const e = form.formState.errors
+  const moneda = useWatch({ control: form.control, name: 'moneda' })
   return (
     <form
       id="paso"
       noValidate
       className="grid gap-4"
-      onSubmit={form.handleSubmit((v) => onNext({ nombre: v.nombre, ingreso: v.ingreso }))}
+      onSubmit={form.handleSubmit((v) => onNext({ nombre: v.nombre, moneda: v.moneda, ingreso: v.ingreso }))}
     >
       <Field id="nombre" label="¿Cómo te llamás? (opcional)" error={e.nombre?.message}>
         <Input id="nombre" className="h-11" autoComplete="given-name" {...form.register('nombre')} />
+      </Field>
+      <Field id="moneda" label="¿En qué moneda manejás tus cuentas?" error={e.moneda?.message}>
+        <Controller
+          control={form.control}
+          name="moneda"
+          render={({ field }) => (
+            <CurrencySelect id="moneda" value={field.value} onChange={field.onChange} invalid={!!e.moneda} />
+          )}
+        />
       </Field>
       <Field
         id="ingreso"
         label="Ingreso mensual neto"
         error={e.ingreso?.message}
-        hint="Lo que te cae al mes después de descuentos. Aguinaldo y Bono 14 se agregan aparte."
+        hint="Lo que te cae al mes después de descuentos. Aguinaldo y bonos se agregan aparte."
       >
-        <MoneyInput id="ingreso" large autoFocus aria-describedby="ingreso-msg" {...form.register('ingreso')} />
+        <MoneyInput
+          id="ingreso"
+          large
+          autoFocus
+          currency={isValidCurrency(moneda) ? moneda : undefined}
+          aria-describedby="ingreso-msg"
+          {...form.register('ingreso')}
+        />
       </Field>
     </form>
   )
@@ -69,7 +89,7 @@ function IngresoStep({ state, onNext }: { state: WizardState; onNext: (s: Partia
 
 const fijoSchema = z.object({
   concepto: z.string().trim().min(1, 'Poné un concepto').max(40),
-  monto: moneyField('Ingresá el monto').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+  monto: moneyField('Ingresá el monto').refine((v) => v > 0, 'Debe ser mayor a cero'),
 })
 
 function FijosStep({ state, setState }: { state: WizardState; setState: (s: Partial<WizardState>) => void }) {
@@ -96,7 +116,7 @@ function FijosStep({ state, setState }: { state: WizardState; setState: (s: Part
           {state.gastosFijos.map((g, i) => (
             <li key={`${g.concepto}${i}`} className="flex items-center gap-3 px-3 py-2 text-sm">
               <span className="flex-1">{g.concepto}</span>
-              <Money value={g.monto} />
+              <Money currency={state.moneda} value={g.monto} />
               <Button
                 size="icon"
                 variant="ghost"
@@ -129,7 +149,7 @@ function FijosStep({ state, setState }: { state: WizardState; setState: (s: Part
           <Input id="fijo-concepto" className="h-11" {...form.register('concepto')} />
         </Field>
         <Field id="fijo-monto" label="Monto" error={e.monto?.message}>
-          <MoneyInput id="fijo-monto" {...form.register('monto')} />
+          <MoneyInput id="fijo-monto" currency={state.moneda} {...form.register('monto')} />
         </Field>
         <Button type="submit" variant="outline" className="mt-6 h-11" aria-label="Agregar gasto fijo">
           <Plus />
@@ -137,8 +157,13 @@ function FijosStep({ state, setState }: { state: WizardState; setState: (s: Part
       </form>
       {libre != null && (
         <p className="bg-muted/60 rounded-xl p-3 text-sm">
-          Te quedan <Money value={libre} className={cn('font-semibold', libre < 0 && 'text-destructive')} /> al mes para
-          deudas y otros gastos.
+          Te quedan{' '}
+          <Money
+            currency={state.moneda}
+            value={libre}
+            className={cn('font-semibold', libre < 0 && 'text-destructive')}
+          />{' '}
+          al mes para deudas y otros gastos.
         </p>
       )}
     </div>
@@ -151,7 +176,7 @@ const deudaSchema = z.object({
   tipo: z.enum(['tarjeta', 'prestamo']),
   nombre: z.string().trim().min(1, 'Poné un nombre (ej. "Visa Oro")').max(60),
   entidad: optionalText(),
-  saldo: moneyField('Ingresá el saldo actual').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+  saldo: moneyField('Ingresá el saldo actual').refine((v) => v > 0, 'Debe ser mayor a cero'),
   tasa_anual: optionalPercentField(),
   cuota_mensual: optionalMoneyField(),
   seguro_mensual: optionalMoneyField(),
@@ -197,10 +222,12 @@ function DeudaForm({
   initial,
   onSave,
   onCancel,
+  moneda,
 }: {
   initial: DeudaInput
   onSave: (d: Omit<WizardDebt, 'key'>) => void
   onCancel?: () => void
+  moneda: string
 }) {
   const form = useForm<DeudaInput, unknown, z.output<typeof deudaSchema>>({
     resolver: zodResolver(deudaSchema),
@@ -236,14 +263,14 @@ function DeudaForm({
           <Input id="d-entidad" className="h-11" {...form.register('entidad')} />
         </Field>
         <Field id="d-saldo" label="Saldo actual" error={e.saldo?.message}>
-          <MoneyInput id="d-saldo" {...form.register('saldo')} />
+          <MoneyInput id="d-saldo" currency={moneda} {...form.register('saldo')} />
         </Field>
         <Field
           id="d-cuota"
           label={tipo === 'tarjeta' ? 'Pago mensual' : 'Cuota mensual'}
           error={e.cuota_mensual?.message}
         >
-          <MoneyInput id="d-cuota" {...form.register('cuota_mensual')} />
+          <MoneyInput id="d-cuota" currency={moneda} {...form.register('cuota_mensual')} />
         </Field>
         <Field id="d-tasa" label="Tasa anual (%)" error={e.tasa_anual?.message} hint="Vacío = PENDIENTE">
           <Input
@@ -260,10 +287,10 @@ function DeudaForm({
         {tipo === 'tarjeta' ? (
           <>
             <Field id="d-seguro" label="Seguro mensual" error={e.seguro_mensual?.message} hint="Vacío = PENDIENTE">
-              <MoneyInput id="d-seguro" {...form.register('seguro_mensual')} />
+              <MoneyInput id="d-seguro" currency={moneda} {...form.register('seguro_mensual')} />
             </Field>
             <Field id="d-limite" label="Límite de crédito" error={e.limite_credito?.message}>
-              <MoneyInput id="d-limite" {...form.register('limite_credito')} />
+              <MoneyInput id="d-limite" currency={moneda} {...form.register('limite_credito')} />
             </Field>
           </>
         ) : (
@@ -311,6 +338,7 @@ function DeudasStep({ state, setState }: { state: WizardState; setState: (s: Par
             editing === d.key ? (
               <li key={d.key}>
                 <DeudaForm
+                  moneda={state.moneda}
                   initial={toDeudaInput(d)}
                   onCancel={() => setEditing(null)}
                   onSave={(v) => {
@@ -330,10 +358,10 @@ function DeudasStep({ state, setState }: { state: WizardState; setState: (s: Par
                   <p className="truncate font-medium">{d.nombre}</p>
                   <p className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs">
                     {d.tasa_anual == null ? <PendingBadge short /> : `${formatPercent(d.tasa_anual)} anual`}
-                    {d.cuota_mensual != null && ` · cuota ${formatGTQ(d.cuota_mensual)}`}
+                    {d.cuota_mensual != null && ` · cuota ${formatCurrency(d.cuota_mensual, state.moneda)}`}
                   </p>
                 </div>
-                <Money value={d.saldo} className="font-medium" />
+                <Money currency={state.moneda} value={d.saldo} className="font-medium" />
                 <Button size="icon" variant="ghost" aria-label={`Editar ${d.nombre}`} onClick={() => setEditing(d.key)}>
                   <Pencil />
                 </Button>
@@ -357,6 +385,7 @@ function DeudasStep({ state, setState }: { state: WizardState; setState: (s: Par
       )}
       {editing == null && (
         <DeudaForm
+          moneda={state.moneda}
           initial={emptyDeuda('tarjeta')}
           onSave={(v) => setState({ deudas: [...state.deudas, { ...v, key: `w${Date.now().toString(36)}` }] })}
         />
@@ -371,7 +400,7 @@ const cuotaSchema = z
   .object({
     debt: z.string().min(1, 'Elegí la tarjeta'),
     descripcion: z.string().trim().min(1, 'Describí la compra (ej. "Celular en visacuotas")').max(60),
-    monto_cuota: moneyField('Ingresá el monto de cada cuota').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+    monto_cuota: moneyField('Ingresá el monto de cada cuota').refine((v) => v > 0, 'Debe ser mayor a cero'),
     cuotas_totales: optionalIntField(1, 120).pipe(z.number({ invalid_type_error: 'Requerido' })),
     cuotas_cobradas: optionalIntField(0, 120).transform((v) => v ?? 0),
   })
@@ -416,10 +445,14 @@ function CuotasStep({ state, setState }: { state: WizardState; setState: (s: Par
                 <p className="truncate font-medium">{c.descripcion}</p>
                 <p className="text-muted-foreground text-xs">
                   {nombre.get(c.debt)} · {c.cuotas_totales - c.cuotas_cobradas} cuotas pendientes de{' '}
-                  {formatGTQ(c.monto_cuota)}
+                  {formatCurrency(c.monto_cuota, state.moneda)}
                 </p>
               </div>
-              <Money value={c.monto_cuota * (c.cuotas_totales - c.cuotas_cobradas)} className="font-medium" />
+              <Money
+                currency={state.moneda}
+                value={c.monto_cuota * (c.cuotas_totales - c.cuotas_cobradas)}
+                className="font-medium"
+              />
               <Button
                 size="icon"
                 variant="ghost"
@@ -451,7 +484,7 @@ function CuotasStep({ state, setState }: { state: WizardState; setState: (s: Par
             <Input id="c-desc" className="h-11" {...form.register('descripcion')} />
           </Field>
           <Field id="c-monto" label="Monto de cada cuota" error={e.monto_cuota?.message}>
-            <MoneyInput id="c-monto" {...form.register('monto_cuota')} />
+            <MoneyInput id="c-monto" currency={state.moneda} {...form.register('monto_cuota')} />
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field id="c-tot" label="Total" error={e.cuotas_totales?.message}>
@@ -515,10 +548,16 @@ function PlanStep({
       <Field
         id="presupuesto"
         label="¿Cuánto podés pagar a deudas cada mes?"
-        error={presupuesto !== '' && !valido ? 'Ingresá un monto mayor a Q0' : undefined}
-        hint={`Tus cuotas suman ${formatGTQ(cuotas)}${libre != null ? ` y te quedan ${formatGTQ(libre)} después de gastos fijos` : ''}.`}
+        error={presupuesto !== '' && !valido ? 'Ingresá un monto mayor a cero' : undefined}
+        hint={`Tus cuotas suman ${formatCurrency(cuotas, state.moneda)}${libre != null ? ` y te quedan ${formatCurrency(libre, state.moneda)} después de gastos fijos` : ''}.`}
       >
-        <MoneyInput id="presupuesto" large value={presupuesto} onChange={(e) => setPresupuesto(e.target.value)} />
+        <MoneyInput
+          id="presupuesto"
+          large
+          currency={state.moneda}
+          value={presupuesto}
+          onChange={(e) => setPresupuesto(e.target.value)}
+        />
       </Field>
       {resumen && (
         <section aria-live="polite" className="bg-ink text-ink-foreground grid gap-2 rounded-2xl p-4">
@@ -529,8 +568,8 @@ function PlanStep({
               : 'Con este presupuesto no terminás en 10 años'}
           </p>
           <p className="text-ink-foreground/70 text-sm">
-            Deuda real hoy {formatGTQ(resumen.deuda_inicial)} · intereses y cargos ≈{' '}
-            {formatGTQ(resumen.total_interes_cargos)}
+            Deuda real hoy {formatCurrency(resumen.deuda_inicial, state.moneda)} · intereses y cargos ≈{' '}
+            {formatCurrency(resumen.total_interes_cargos, state.moneda)}
           </p>
           {preview.supuestos!.advertencias.length > 0 && (
             <ul className="text-ink-foreground/70 list-disc pl-5 text-xs">
@@ -547,14 +586,21 @@ function PlanStep({
 
 /* ------------------------------------------------------------------ página */
 
-const EMPTY: WizardState = { nombre: '', ingreso: null, gastosFijos: [], deudas: [], cuotas: [] }
+const nuevoEstado = (): WizardState => ({
+  moneda: guessCurrency(typeof navigator === 'undefined' ? undefined : navigator.language),
+  nombre: '',
+  ingreso: null,
+  gastosFijos: [],
+  deudas: [],
+  cuotas: [],
+})
 
 export function WizardPage() {
   useDocumentTitle('Empezar desde cero')
   const navigate = useNavigate()
   const importPayload = useImportPayload()
   const [paso, setPaso] = useState(0)
-  const [state, setStateRaw] = useState<WizardState>(EMPTY)
+  const [state, setStateRaw] = useState<WizardState>(nuevoEstado)
   const [estrategia, setEstrategia] = useState<Strategy>('avalancha')
   const [presupuesto, setPresupuesto] = useState('')
   const setState = (s: Partial<WizardState>) => setStateRaw((prev) => ({ ...prev, ...s }))
@@ -579,6 +625,7 @@ export function WizardPage() {
       { payload },
       {
         onSuccess: () => {
+          setCurrency(state.moneda)
           toast.success('¡Listo! Tu plan quedó activo.')
           navigate('/inicio', { replace: true })
         },

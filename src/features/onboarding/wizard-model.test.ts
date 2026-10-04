@@ -3,6 +3,7 @@ import { buildWizardPayload, monthlyRoom, sumCuotas, type WizardState } from './
 
 // Datos sintéticos (no son los del seed real).
 const state: WizardState = {
+  moneda: 'USD',
   nombre: ' Ana ',
   ingreso: 6000,
   gastosFijos: [
@@ -51,7 +52,7 @@ describe('asistente desde cero', () => {
   const p = buildWizardPayload(state, { estrategia: 'avalancha', presupuestoDeudas: 1500 }, '2026-10-04', '2026-10-01')
 
   it('arma perfil, gastos fijos y deudas con fecha base de hoy', () => {
-    expect(p.profile).toEqual({ nombre: 'Ana', ingreso_mensual: 6000, moneda: 'GTQ' })
+    expect(p.profile).toEqual({ nombre: 'Ana', ingreso_mensual: 6000, moneda: 'USD' })
     expect(p.budget_items.map((b) => [b.concepto, b.monto, b.orden])).toEqual([
       ['Comida', 2000, 0],
       ['Luz', 250.5, 1],

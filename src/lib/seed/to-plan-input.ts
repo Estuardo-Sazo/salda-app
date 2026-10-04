@@ -37,6 +37,7 @@ export function seedToPlanInput(
     abonoExtra: overrides.abonoExtra ?? seed.plan_inicial.abono_extra,
     fechaInicio: overrides.fechaInicio ?? seed.plan_inicial.fecha_inicio,
     ingresoMensual: seed.profile.ingreso_mensual,
+    moneda: seed.profile.moneda,
     gastosFijos: seed.budget_items.reduce((acc, b) => acc + Math.round(b.monto * 100), 0) / 100,
   }
 }

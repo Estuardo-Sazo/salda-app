@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { useImportData } from '@/features/common/queries'
 import { ImportPanel } from '@/features/data/import-panel'
-import { formatGTQ, formatPeriod } from '@/lib/format'
+import { formatMoney, formatPeriod } from '@/lib/format'
 import { buildSeedPayload } from '@/lib/seed/build-payload'
 import { bundledSeed, isExampleSeed, parseSeed } from '@/lib/seed/load'
 import type { SeedData } from '@/lib/seed/types'
@@ -164,7 +164,7 @@ export function OnboardingPage() {
             </div>
             <div>
               <dt className="text-muted-foreground">Deuda real</dt>
-              <dd className="tabular font-semibold">{formatGTQ(resumen.deuda_inicial)}</dd>
+              <dd className="tabular font-semibold">{formatMoney(resumen.deuda_inicial)}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Plan</dt>

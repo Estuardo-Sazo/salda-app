@@ -19,7 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDebtStatus, useMonthlyTotals, type DebtStatus, type MonthlyTotals } from '@/features/common/queries'
 import { PlanLinesChart } from '@/features/plan/charts'
-import { currentPeriod, formatDate, formatGTQ, formatPercent, formatPeriod, formatPeriodLong } from '@/lib/format'
+import { currentPeriod, formatDate, formatMoney, formatPercent, formatPeriod, formatPeriodLong } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useExpensesRange, usePaymentsRange } from './api'
 import { PaymentsSplitChart } from './charts'
@@ -81,7 +81,7 @@ function DebtChange({ value }: { value: number | null }) {
     <span className={cn('inline-flex items-center gap-1', bajo ? 'text-success' : 'text-destructive')}>
       <Icon className="size-5" aria-hidden />
       <span className="sr-only">{bajo ? 'Bajó' : 'Subió'}</span>
-      {formatGTQ(Math.abs(value))}
+      {formatMoney(Math.abs(value))}
     </span>
   )
 }
@@ -136,7 +136,7 @@ function Categories({ rows }: { rows: CategoryRow[] }) {
               {c.categoria} <span className="text-muted-foreground text-xs">· {c.cantidad}</span>
             </span>
             <span className="tabular">
-              {formatGTQ(c.monto)} <span className="text-muted-foreground text-xs">{formatPercent(c.porcentaje)}</span>
+              {formatMoney(c.monto)} <span className="text-muted-foreground text-xs">{formatPercent(c.porcentaje)}</span>
             </span>
           </div>
           <div className="bg-muted h-2 overflow-hidden rounded-full" aria-hidden>
@@ -222,13 +222,13 @@ function MonthlyTab({ totals, debts }: { totals: TotalsRow[]; debts: DebtRow[] }
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Kpi icon={Wallet} label="Pagado a deudas" hint={`${r.pagos.length} pagos`}>
-              {formatGTQ(r.totales?.pagos)}
+              {formatMoney(r.totales?.pagos)}
             </Kpi>
             <Kpi icon={PiggyBank} label="Capital" hint="lo que bajó la deuda">
-              <span className="text-success">{formatGTQ(r.totales?.capital)}</span>
+              <span className="text-success">{formatMoney(r.totales?.capital)}</span>
             </Kpi>
             <Kpi icon={Receipt} label="Interés y cargos" hint={`${formatPercent(r.pctInteres)} de lo pagado`}>
-              <span className="text-destructive">{formatGTQ(r.totales?.interes_cargos)}</span>
+              <span className="text-destructive">{formatMoney(r.totales?.interes_cargos)}</span>
             </Kpi>
             <Kpi icon={ArrowDownRight} label="Deuda real" hint="vs mes anterior">
               <DebtChange value={r.cambioDeuda} />
@@ -262,21 +262,21 @@ function MonthlyTab({ totals, debts }: { totals: TotalsRow[]; debts: DebtRow[] }
                 ) : (
                   <dl className="tabular grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 text-sm">
                     <dt>Ingreso</dt>
-                    <dd className="text-right">{formatGTQ(r.flujo.ingreso)}</dd>
+                    <dd className="text-right">{formatMoney(r.flujo.ingreso)}</dd>
                     {r.flujo.ingresosExtra > 0 && (
                       <>
                         <dt>+ Ingresos extra</dt>
-                        <dd className="text-success text-right">{formatGTQ(r.flujo.ingresosExtra)}</dd>
+                        <dd className="text-success text-right">{formatMoney(r.flujo.ingresosExtra)}</dd>
                       </>
                     )}
                     <dt>− Gastos fijos</dt>
-                    <dd className="text-right">{formatGTQ(r.flujo.gastosFijos)}</dd>
+                    <dd className="text-right">{formatMoney(r.flujo.gastosFijos)}</dd>
                     <dt>− Pagos a deudas</dt>
-                    <dd className="text-right">{formatGTQ(r.flujo.pagos)}</dd>
+                    <dd className="text-right">{formatMoney(r.flujo.pagos)}</dd>
                     <dt className="border-t pt-1.5 font-semibold">Flujo libre</dt>
-                    <dd className="border-t pt-1.5 text-right font-semibold">{formatGTQ(r.flujo.libre)}</dd>
+                    <dd className="border-t pt-1.5 text-right font-semibold">{formatMoney(r.flujo.libre)}</dd>
                     <dt className="text-muted-foreground">− Gastos con dinero</dt>
-                    <dd className="text-muted-foreground text-right">{formatGTQ(r.gastosEfectivo)}</dd>
+                    <dd className="text-muted-foreground text-right">{formatMoney(r.gastosEfectivo)}</dd>
                     <dt className="font-semibold">Te queda</dt>
                     <dd
                       className={cn(
@@ -284,7 +284,7 @@ function MonthlyTab({ totals, debts }: { totals: TotalsRow[]; debts: DebtRow[] }
                         (r.flujo.despuesDeGastos ?? 0) < 0 ? 'text-destructive' : 'text-success',
                       )}
                     >
-                      {formatGTQ(r.flujo.despuesDeGastos)}
+                      {formatMoney(r.flujo.despuesDeGastos)}
                     </dd>
                   </dl>
                 )}
@@ -334,13 +334,13 @@ function MonthlyTab({ totals, debts }: { totals: TotalsRow[]; debts: DebtRow[] }
                             {p.nombre}
                           </Link>
                         </td>
-                        <td className={td}>{formatGTQ(p.pago_total)}</td>
+                        <td className={td}>{formatMoney(p.pago_total)}</td>
                         <td className={cn(td, 'text-destructive')}>
-                          {p.interes == null && p.cargos == null ? '—' : formatGTQ((p.interes ?? 0) + (p.cargos ?? 0))}
+                          {p.interes == null && p.cargos == null ? '—' : formatMoney((p.interes ?? 0) + (p.cargos ?? 0))}
                           {p.es_estimado && <span className="text-muted-foreground ml-1 text-xs">est.</span>}
                         </td>
-                        <td className={cn(td, 'text-success')}>{formatGTQ(p.capital)}</td>
-                        <td className={td}>{formatGTQ(p.saldo_despues)}</td>
+                        <td className={cn(td, 'text-success')}>{formatMoney(p.capital)}</td>
+                        <td className={td}>{formatMoney(p.saldo_despues)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -445,20 +445,20 @@ function RangeTab({ totals, debts }: { totals: TotalsRow[]; debts: DebtRow[] }) 
               label="Deuda real"
               hint={
                 r.deudaInicial != null && r.deudaFinal != null
-                  ? `${formatGTQ(r.deudaInicial)} → ${formatGTQ(r.deudaFinal)}`
+                  ? `${formatMoney(r.deudaInicial)} → ${formatMoney(r.deudaFinal)}`
                   : undefined
               }
             >
               <DebtChange value={r.cambio} />
             </Kpi>
             <Kpi icon={Wallet} label="Pagado a deudas">
-              {formatGTQ(r.totales.pagos)}
+              {formatMoney(r.totales.pagos)}
             </Kpi>
             <Kpi icon={Receipt} label="Intereses pagados" hint={`${formatPercent(r.pctInteres)} de lo pagado`}>
-              <span className="text-destructive">{formatGTQ(r.totales.interesCargos)}</span>
+              <span className="text-destructive">{formatMoney(r.totales.interesCargos)}</span>
             </Kpi>
-            <Kpi icon={PiggyBank} label="Capital" hint={`Compras con tarjeta ${formatGTQ(r.totales.comprasTarjeta)}`}>
-              <span className="text-success">{formatGTQ(r.totales.capital)}</span>
+            <Kpi icon={PiggyBank} label="Capital" hint={`Compras con tarjeta ${formatMoney(r.totales.comprasTarjeta)}`}>
+              <span className="text-success">{formatMoney(r.totales.capital)}</span>
             </Kpi>
           </div>
 

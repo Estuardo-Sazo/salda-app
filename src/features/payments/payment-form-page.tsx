@@ -27,7 +27,7 @@ import { useDebtStatus, useMonthlyBalances, type DebtStatus } from '@/features/c
 import { addMonths } from '@/lib/finance/period'
 import { flatInterestPortion, flatPayoffIn, type FlatLoanTerms } from '@/lib/finance/flat-loan'
 import { analyzePayment, expectedBalanceAfter, previousBalance } from '@/lib/finance/payment'
-import { formatGTQ, formatPeriod, periodOf, todayISO } from '@/lib/format'
+import { formatMoney, formatPeriod, periodOf, todayISO } from '@/lib/format'
 import { parseAmount, toInput } from '@/lib/forms'
 import { CreditCard } from 'lucide-react'
 import { useDeletePayment, usePayment, usePaymentSources, useSavePayment } from './api'
@@ -60,7 +60,7 @@ function DebtChips({
         <ChoiceChip key={d.debt_id} selected={value === d.debt_id} onClick={() => onSelect(d)}>
           <span className="block truncate font-medium">{d.nombre}</span>
           <span className="text-muted-foreground block text-xs">
-            {d.cuota_mensual != null ? `Cuota ${formatGTQ(d.cuota_mensual)}` : 'Sin cuota'}
+            {d.cuota_mensual != null ? `Cuota ${formatMoney(d.cuota_mensual)}` : 'Sin cuota'}
           </span>
         </ChoiceChip>
       ))}
@@ -233,8 +233,8 @@ export function PaymentFormPage() {
         },
       })
       const verbo = a.bajo >= 0 ? 'bajó' : 'subió'
-      const detalle = a.interes != null ? `; interés ${formatGTQ(a.interes)}${a.esEstimado ? ' (estimado)' : ''}` : ''
-      toast.success(`${debt.nombre} ${verbo} ${formatGTQ(Math.abs(a.bajo))}${detalle}`)
+      const detalle = a.interes != null ? `; interés ${formatMoney(a.interes)}${a.esEstimado ? ' (estimado)' : ''}` : ''
+      toast.success(`${debt.nombre} ${verbo} ${formatMoney(Math.abs(a.bajo))}${detalle}`)
       navigate(volver, { replace: true })
     } catch (e) {
       toast.error((e as Error).message)
@@ -327,8 +327,8 @@ export function PaymentFormPage() {
           saldoAnterior == null
             ? undefined
             : flatTerms
-              ? `Para cancelarlo en ${formatPeriod(periodo)}: ${formatGTQ(saldoAnterior)} (incluye el interés fijo)`
-              : `Saldo anterior ${formatGTQ(saldoAnterior)}`
+              ? `Para cancelarlo en ${formatPeriod(periodo)}: ${formatMoney(saldoAnterior)} (incluye el interés fijo)`
+              : `Saldo anterior ${formatMoney(saldoAnterior)}`
         }
       >
         <MoneyInput
@@ -344,7 +344,7 @@ export function PaymentFormPage() {
             className="text-primary inline-flex w-fit items-center gap-1 text-xs font-medium hover:underline"
           >
             <Sparkles className="size-3.5" aria-hidden />
-            {flatTerms ? `Usar ${formatGTQ(sugerido)}` : `Usar estimado ${formatGTQ(sugerido)}`}
+            {flatTerms ? `Usar ${formatMoney(sugerido)}` : `Usar estimado ${formatMoney(sugerido)}`}
           </button>
         )}
       </Field>

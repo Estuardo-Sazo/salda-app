@@ -33,7 +33,7 @@ const SUGERIDOS = [
 const schema = z.object({
   concepto: z.string().trim().min(1, 'Poné un nombre (ej. Aguinaldo)').max(60),
   periodo: dateField('Elegí el mes'),
-  monto: moneyField('Ingresá el monto').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+  monto: moneyField('Ingresá el monto').refine((v) => v > 0, 'Debe ser mayor a cero'),
 })
 type FormInput = z.input<typeof schema>
 type FormOutput = z.output<typeof schema>

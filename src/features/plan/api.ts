@@ -100,6 +100,7 @@ export function usePlanSources(): { sources: PlanSources | null; error: Error | 
       ingresoMensual: profile.data?.ingreso_mensual ?? null,
       gastosFijos: fixed.data,
       ingresosExtra: extras.data,
+      moneda: profile.data?.moneda ?? null,
     }
   }, [debts.data, installments.data, profile.data, fixed.data, extras.data])
 

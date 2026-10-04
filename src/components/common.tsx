@@ -1,13 +1,27 @@
 import { AlertTriangle, Construction, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { formatCurrency } from '@/lib/finance/currency'
 import { useDocumentTitle } from '@/hooks/use-document-title'
-import { formatGTQ } from '@/lib/format'
+import { formatMoney } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-/** Monto en quetzales con cifras tabulares. */
-export function Money({ value, className }: { value: number | null | undefined; className?: string }) {
-  return <span className={cn('tabular whitespace-nowrap', className)}>{formatGTQ(value)}</span>
+/** Monto en la moneda del usuario con cifras tabulares. */
+export function Money({
+  value,
+  className,
+  currency,
+}: {
+  value: number | null | undefined
+  className?: string
+  /** Por defecto, la moneda del usuario. */
+  currency?: string
+}) {
+  return (
+    <span className={cn('tabular whitespace-nowrap', className)}>
+      {currency ? formatCurrency(value, currency) : formatMoney(value)}
+    </span>
+  )
 }
 
 /** Etiqueta obligatoria para cualquier dato null (tasas, seguros, saldos de cancelación). */

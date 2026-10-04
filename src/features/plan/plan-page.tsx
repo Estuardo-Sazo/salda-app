@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDebtStatus, useMonthlyTotals, type MonthlyTotals } from '@/features/common/queries'
 import { seriesColor } from '@/features/dashboard/chart-style'
-import { currentPeriod, formatDate, formatGTQ, formatPeriod, formatPeriodLong } from '@/lib/format'
+import { currentPeriod, formatDate, formatMoney, formatPeriod, formatPeriodLong } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useActivatePlan, usePlanRows, usePlans, type Plan } from './api'
 import { PlanLinesChart } from './charts'
@@ -44,8 +44,9 @@ function PlanSummaryCard({ plan, rows, totals }: { plan: Plan; rows: PlanRowSour
           <Badge variant="success">Activo</Badge>
         </div>
         <CardDescription>
-          {ESTRATEGIA_LABEL[plan.estrategia]} · {formatGTQ(plan.presupuesto_deudas)} al mes
-          {plan.abono_extra > 0 && ` + ${formatGTQ(plan.abono_extra)} extra`} · desde {formatPeriod(plan.fecha_inicio)}
+          {ESTRATEGIA_LABEL[plan.estrategia]} · {formatMoney(plan.presupuesto_deudas)} al mes
+          {plan.abono_extra > 0 && ` + ${formatMoney(plan.abono_extra)} extra`} · desde{' '}
+          {formatPeriod(plan.fecha_inicio)}
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
@@ -88,7 +89,7 @@ function PlanSummaryCard({ plan, rows, totals }: { plan: Plan; rows: PlanRowSour
             ) : (
               <AlertTriangle className="size-4 shrink-0" aria-hidden />
             )}
-            En {formatPeriodLong(ultimo.periodo)} vas {formatGTQ(Math.abs(ultimo.diferencia!))}{' '}
+            En {formatPeriodLong(ultimo.periodo)} vas {formatMoney(Math.abs(ultimo.diferencia!))}{' '}
             {diffTone(ultimo.diferencia!) === 'good' ? 'adelantado' : 'atrasado'} vs la meta.
           </p>
         ) : (
@@ -175,13 +176,13 @@ function MonthByMonth({ rows, totals }: { rows: PlanRowSource[]; totals: Monthly
                     {formatPeriod(r.periodo)}
                     <span className="text-muted-foreground ml-1.5 text-xs font-normal">#{r.mes}</span>
                   </th>
-                  <td className={cn(td, 'font-medium')}>{formatGTQ(r.meta)}</td>
-                  <td className={td}>{r.real == null ? '—' : formatGTQ(r.real)}</td>
+                  <td className={cn(td, 'font-medium')}>{formatMoney(r.meta)}</td>
+                  <td className={td}>{r.real == null ? '—' : formatMoney(r.real)}</td>
                   <td className={td}>
                     <DiffAmount value={r.diferencia} />
                   </td>
-                  <td className={cn(td, 'text-muted-foreground')}>{formatGTQ(r.pago)}</td>
-                  <td className={cn(td, 'text-muted-foreground')}>{formatGTQ(r.interesCargos)}</td>
+                  <td className={cn(td, 'text-muted-foreground')}>{formatMoney(r.pago)}</td>
+                  <td className={cn(td, 'text-muted-foreground')}>{formatMoney(r.interesCargos)}</td>
                 </tr>
               ))}
             </tbody>
@@ -243,7 +244,7 @@ function ByDebt({ rows }: { rows: PlanRowSource[] }) {
                         esLiquidacion && 'text-success font-semibold',
                       )}
                     >
-                      {saldo == null ? '—' : esLiquidacion ? 'Liquidada' : formatGTQ(saldo)}
+                      {saldo == null ? '—' : esLiquidacion ? 'Liquidada' : formatMoney(saldo)}
                     </td>
                   )
                 })}
@@ -305,7 +306,7 @@ function PlansList({ plans, activeId }: { plans: Plan[]; activeId: string | unde
   const diffCell = (value: number) => (
     <span className={cn('tabular', value < 0 ? 'text-success' : value > 0 ? 'text-destructive' : '')}>
       {value > 0 ? '+' : value < 0 ? '−' : ''}
-      {formatGTQ(Math.abs(value))}
+      {formatMoney(Math.abs(value))}
     </span>
   )
 
@@ -321,7 +322,7 @@ function PlansList({ plans, activeId }: { plans: Plan[]; activeId: string | unde
                   {p.activo && <Badge variant="success">Activo</Badge>}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  {ESTRATEGIA_LABEL[p.estrategia]} · {formatGTQ(p.presupuesto_deudas)}/mes · desde{' '}
+                  {ESTRATEGIA_LABEL[p.estrategia]} · {formatMoney(p.presupuesto_deudas)}/mes · desde{' '}
                   {formatPeriod(p.fecha_inicio)}
                   {p.supuestos?.resumen.periodo_libre &&
                     ` · libre en ${formatPeriod(p.supuestos.resumen.periodo_libre)}`}
@@ -414,16 +415,16 @@ function PlansList({ plans, activeId }: { plans: Plan[]; activeId: string | unde
                         <th scope="row" className="py-1.5 pr-3 text-left font-medium">
                           Intereses y cargos
                         </th>
-                        <td className={td}>{formatGTQ(comparison.interesCargos.a)}</td>
-                        <td className={td}>{formatGTQ(comparison.interesCargos.b)}</td>
+                        <td className={td}>{formatMoney(comparison.interesCargos.a)}</td>
+                        <td className={td}>{formatMoney(comparison.interesCargos.b)}</td>
                         <td className={td}>{diffCell(comparison.interesCargos.diferencia)}</td>
                       </tr>
                       <tr>
                         <th scope="row" className="py-1.5 pr-3 text-left font-medium">
                           Total a pagar
                         </th>
-                        <td className={td}>{formatGTQ(comparison.totalPagado.a)}</td>
-                        <td className={td}>{formatGTQ(comparison.totalPagado.b)}</td>
+                        <td className={td}>{formatMoney(comparison.totalPagado.a)}</td>
+                        <td className={td}>{formatMoney(comparison.totalPagado.b)}</td>
                         <td className={td}>{diffCell(comparison.totalPagado.diferencia)}</td>
                       </tr>
                     </tbody>

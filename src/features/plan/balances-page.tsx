@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useActivePlan, useDebtStatus, useMonthlyBalances, useMonthlyTotals } from '@/features/common/queries'
-import { formatGTQ, formatPeriod, formatPeriodLong } from '@/lib/format'
+import { formatMoney, formatPeriod, formatPeriodLong } from '@/lib/format'
 import { moneyField, toInput } from '@/lib/forms'
 import { cn } from '@/lib/utils'
 import { useSaveManualSnapshot } from './api'
@@ -59,7 +59,7 @@ function EditBalanceDialog({ editing, onClose }: { editing: Editing | null; onCl
         saldo,
         cuotas_fuera_saldo: editing.cell.cuotasFuera,
       })
-      toast.success(`${editing.nombre}: saldo de ${formatPeriod(editing.periodo)} en ${formatGTQ(saldo)}`)
+      toast.success(`${editing.nombre}: saldo de ${formatPeriod(editing.periodo)} en ${formatMoney(saldo)}`)
       onClose()
     } catch (err) {
       toast.error((err as Error).message)
@@ -88,7 +88,7 @@ function EditBalanceDialog({ editing, onClose }: { editing: Editing | null; onCl
               error={form.formState.errors.saldo?.message}
               hint={
                 editing.cell.cuotasFuera > 0
-                  ? `Sin las cuotas fuera de saldo (${formatGTQ(editing.cell.cuotasFuera)}), que se mantienen.`
+                  ? `Sin las cuotas fuera de saldo (${formatMoney(editing.cell.cuotasFuera)}), que se mantienen.`
                   : 'Saldo del estado de cuenta, sin cuotas fuera de saldo.'
               }
             >
@@ -120,7 +120,7 @@ function Legend() {
         <span className="bg-warning size-2 rounded-full" aria-hidden /> Ajuste manual
       </li>
       <li className="flex items-center gap-1.5">
-        <span className="italic">Q0.00</span> en gris: sin dato del mes, se arrastra el anterior
+        <span className="italic">{formatMoney(0)}</span> en gris: sin dato del mes, se arrastra el anterior
       </li>
       <li>Diferencia = total real − meta</li>
     </ul>
@@ -233,7 +233,7 @@ export function BalancesPage() {
                             onClick={() =>
                               setEditing({ debtId: d.debt_id, nombre: d.nombre, periodo: row.periodo, cell })
                             }
-                            aria-label={`Corregir saldo de ${d.nombre} en ${formatPeriodLong(row.periodo)}: ${formatGTQ(cell.saldo)}${
+                            aria-label={`Corregir saldo de ${d.nombre} en ${formatPeriodLong(row.periodo)}: ${formatMoney(cell.saldo)}${
                               cell.registrado ? `, ${ORIGEN_LABEL[cell.origen].toLowerCase()}` : ', arrastrado'
                             }`}
                             className={cn(
@@ -250,7 +250,7 @@ export function BalancesPage() {
                                 )}
                               />
                             )}
-                            {formatGTQ(cell.saldo)}
+                            {formatMoney(cell.saldo)}
                           </button>
                         </td>
                       )
@@ -259,7 +259,7 @@ export function BalancesPage() {
                       <Money value={row.saldoTotal} />
                     </td>
                     <td className={cn(td, 'text-muted-foreground')}>
-                      {row.cuotasFuera > 0 ? formatGTQ(row.cuotasFuera) : '—'}
+                      {row.cuotasFuera > 0 ? formatMoney(row.cuotasFuera) : '—'}
                     </td>
                     <td className={cn(td, 'font-semibold')}>
                       <Money value={row.totalReal} />
@@ -267,7 +267,9 @@ export function BalancesPage() {
                     <td className={td}>
                       <ChangeAmount value={row.cambio} />
                     </td>
-                    <td className={cn(td, 'text-muted-foreground')}>{row.meta == null ? '—' : formatGTQ(row.meta)}</td>
+                    <td className={cn(td, 'text-muted-foreground')}>
+                      {row.meta == null ? '—' : formatMoney(row.meta)}
+                    </td>
                     <td className={td}>
                       <DiffAmount value={row.diferencia} />
                     </td>

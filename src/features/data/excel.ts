@@ -1,7 +1,8 @@
 import * as XLSX from 'xlsx'
 import { analyzePayment } from '@/lib/finance/payment'
 import { toPeriod } from '@/lib/finance/period'
-import { formatDate, formatPeriod } from '@/lib/format'
+import { DEFAULT_CURRENCY } from '@/lib/finance/currency'
+import { formatDate, formatMoney, formatPeriod } from '@/lib/format'
 import type {
   Backup,
   BackupDebt,
@@ -77,7 +78,7 @@ function sheet<T>(titulo: string, nota: string, headerRow: number, columns: Colu
 export function buildWorkbook(b: Backup): XLSX.WorkBook {
   const nombre = new Map(b.debts.map((d) => [d.key, d.nombre]))
   const deuda = (key: string | null) => (key ? (nombre.get(key) ?? '') : '')
-  const nota = `Exportado de Saldá el ${formatDate(b.exportado_en.slice(0, 10))}. Montos en quetzales.`
+  const nota = `Exportado de Saldá el ${formatDate(b.exportado_en.slice(0, 10))}. Montos en ${b.profile?.moneda ?? DEFAULT_CURRENCY}.`
   const wb = XLSX.utils.book_new()
   const add = (ws: XLSX.WorkSheet, name: string) => XLSX.utils.book_append_sheet(wb, ws, name)
 
@@ -417,7 +418,7 @@ export function parsePeriodCell(v: Cell): string | null {
   return d ? `${d.slice(0, 7)}-01` : null
 }
 
-/** Número de una celda; acepta "Q1,234.50". '' → null. */
+/** Número de una celda; acepta "Q1,234.50" o "$1,234.50". '' → null. */
 export function parseNumberCell(v: Cell): number | null {
   if (typeof v === 'number') return Number.isFinite(v) ? Math.round(v * 1e6) / 1e6 : Number.NaN
   if (typeof v !== 'string' || v.trim() === '') return null
@@ -644,7 +645,7 @@ export function readWorkbook(wb: XLSX.WorkBook, periodoActual: string): ExcelImp
         rPagos.duplicados.push({
           hoja: rPagos.hoja,
           fila: r.fila,
-          mensaje: `${debtByKey.get(key)!.nombre} ${formatDate(fecha)} por Q${pago.toFixed(2)} ya está en otra fila`,
+          mensaje: `${debtByKey.get(key)!.nombre} ${formatDate(fecha)} por ${formatMoney(pago)} ya está en otra fila`,
         })
         continue
       }

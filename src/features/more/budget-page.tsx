@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Loader2, Pencil, Plus, Trash2, Wallet } from 'lucide-react'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -23,6 +23,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { useAuth } from '@/app/providers/auth'
 import { useProfile } from '@/features/common/queries'
+import { CurrencySelect } from '@/components/currency-select'
+import { isValidCurrency } from '@/lib/finance/currency'
+import { getCurrency, setCurrency } from '@/lib/format'
 import { moneyField, toInput } from '@/lib/forms'
 import { num, supabase, unwrap } from '@/lib/supabase/client'
 import type { Tables } from '@/lib/supabase/database.types'
@@ -53,6 +56,7 @@ function useInvalidateAll() {
 const profileSchema = z.object({
   nombre: z.string().trim().max(60),
   ingreso: moneyField('Ingresá tu ingreso mensual neto'),
+  moneda: z.string().refine(isValidCurrency, 'Elegí una moneda o escribí un código válido de 3 letras'),
 })
 
 function ProfileDialog({
@@ -60,11 +64,13 @@ function ProfileDialog({
   onOpenChange,
   nombre,
   ingreso,
+  moneda,
 }: {
   open: boolean
   onOpenChange: (o: boolean) => void
   nombre: string | null
   ingreso: number | null
+  moneda: string
 }) {
   const { user } = useAuth()
   const invalidate = useInvalidateAll()
@@ -73,19 +79,24 @@ function ProfileDialog({
       unwrap(
         await supabase
           .from('profiles')
-          .upsert({ id: user!.id, nombre: v.nombre || null, ingreso_mensual: v.ingreso }, { onConflict: 'id' }),
+          .upsert(
+            { id: user!.id, nombre: v.nombre || null, ingreso_mensual: v.ingreso, moneda: v.moneda },
+            { onConflict: 'id' },
+          ),
       ),
     onSuccess: invalidate,
   })
   const form = useForm<z.input<typeof profileSchema>, unknown, z.output<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
-    values: { nombre: nombre ?? '', ingreso: toInput(ingreso) },
+    values: { nombre: nombre ?? '', ingreso: toInput(ingreso), moneda },
   })
   const e = form.formState.errors
+  const monedaElegida = useWatch({ control: form.control, name: 'moneda' })
 
   const onSubmit = form.handleSubmit(async (v) => {
     try {
       await save.mutateAsync(v)
+      setCurrency(v.moneda)
       toast.success('Perfil actualizado')
       onOpenChange(false)
     } catch (err) {
@@ -110,7 +121,25 @@ function ProfileDialog({
             error={e.ingreso?.message}
             hint="Aguinaldo y Bono 14 van en Ingresos extra."
           >
-            <MoneyInput id="perfil-ingreso" {...form.register('ingreso')} />
+            <MoneyInput id="perfil-ingreso" currency={monedaElegida} {...form.register('ingreso')} />
+          </Field>
+          <Field
+            id="perfil-moneda"
+            label="Moneda"
+            error={e.moneda?.message}
+            hint={
+              monedaElegida !== moneda
+                ? 'Cambiar la moneda no convierte tus montos: solo cambia cómo se muestran.'
+                : 'Todos tus montos se muestran en esta moneda.'
+            }
+          >
+            <Controller
+              control={form.control}
+              name="moneda"
+              render={({ field }) => (
+                <CurrencySelect id="perfil-moneda" value={field.value} onChange={field.onChange} invalid={!!e.moneda} />
+              )}
+            />
           </Field>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
@@ -131,7 +160,7 @@ function ProfileDialog({
 
 const itemSchema = z.object({
   concepto: z.string().trim().min(1, 'Poné un concepto').max(40),
-  monto: moneyField('Ingresá el monto').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+  monto: moneyField('Ingresá el monto').refine((v) => v > 0, 'Debe ser mayor a cero'),
 })
 
 function ItemDialog({
@@ -250,7 +279,9 @@ export function BudgetPage() {
           <Card className="lg:self-start">
             <CardHeader>
               <CardTitle>Ingreso mensual</CardTitle>
-              <CardDescription>{profile.data?.nombre ?? 'Sin nombre'}</CardDescription>
+              <CardDescription>
+                {profile.data?.nombre ?? 'Sin nombre'} · {profile.data?.moneda ?? getCurrency()}
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
               <dl className="tabular grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 text-sm">
@@ -271,7 +302,7 @@ export function BudgetPage() {
                 </dd>
               </dl>
               <Button variant="outline" className="justify-self-start" onClick={() => setProfileOpen(true)}>
-                <Pencil /> Editar ingreso y nombre
+                <Pencil /> Editar ingreso, nombre y moneda
               </Button>
             </CardContent>
           </Card>
@@ -343,6 +374,7 @@ export function BudgetPage() {
         onOpenChange={setProfileOpen}
         nombre={profile.data?.nombre ?? null}
         ingreso={ingreso}
+        moneda={profile.data?.moneda ?? getCurrency()}
       />
       <ItemDialog
         item={editing}

@@ -43,8 +43,8 @@ import { flatMonthlyCharge, flatPayoffIn } from '@/lib/finance/flat-loan'
 import {
   currentPeriod,
   formatDate,
-  formatGTQ,
-  formatGTQCompact,
+  formatMoney,
+  formatMoneyCompact,
   formatPercent,
   formatPeriod,
   periodOf,
@@ -93,7 +93,7 @@ function PaymentsChart({ payments }: { payments: Payment[] }) {
               axisLine={false}
             />
             <YAxis
-              tickFormatter={formatGTQCompact}
+              tickFormatter={formatMoneyCompact}
               width={56}
               stroke="var(--muted-foreground)"
               fontSize={11}
@@ -102,7 +102,7 @@ function PaymentsChart({ payments }: { payments: Payment[] }) {
             />
             <Tooltip
               cursor={{ fill: 'var(--muted)', opacity: 0.6 }}
-              formatter={(v) => formatGTQ(Number(v))}
+              formatter={(v) => formatMoney(Number(v))}
               labelFormatter={(f) => formatDate(String(f))}
               contentStyle={{
                 background: 'var(--popover)',
@@ -208,7 +208,7 @@ function PaymentsList({ payments, debtId }: { payments: Payment[]; debtId: strin
               </p>
               <p className="text-muted-foreground truncate text-xs">
                 {formatDate(p.fecha)} · {formatPeriod(p.periodo)}
-                {p.interes != null && ` · interés ${formatGTQ(p.interes)}`}
+                {p.interes != null && ` · interés ${formatMoney(p.interes)}`}
               </p>
             </div>
             <div className="text-right">
@@ -346,10 +346,10 @@ export function DebtDetailPage() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-ink-foreground/70 text-sm">Deuda real</p>
-            <p className="tabular text-4xl font-semibold tracking-tight">{formatGTQ(status.deuda_real)}</p>
+            <p className="tabular text-4xl font-semibold tracking-tight">{formatMoney(status.deuda_real)}</p>
             {status.cuotas_fuera_saldo > 0 && (
               <p className="text-ink-foreground/70 mt-1 text-sm">
-                Saldo {formatGTQ(status.saldo_actual)} + {formatGTQ(status.cuotas_fuera_saldo)} fuera de saldo
+                Saldo {formatMoney(status.saldo_actual)} + {formatMoney(status.cuotas_fuera_saldo)} fuera de saldo
               </p>
             )}
           </div>
@@ -370,22 +370,22 @@ export function DebtDetailPage() {
           <p className="text-ink-foreground/70 mt-1.5 flex justify-between text-xs">
             <span>{progreso.toFixed(0)} % pagado del saldo base</span>
             <span className="tabular">
-              base {formatGTQ(d.saldo_base)} · {formatDate(d.fecha_base)}
+              base {formatMoney(d.saldo_base)} · {formatDate(d.fecha_base)}
             </span>
           </p>
         </div>
         <dl className="grid grid-cols-3 gap-3 text-sm">
           <div>
             <dt className="text-ink-foreground/60 text-xs">Pagado</dt>
-            <dd className="tabular font-medium">{formatGTQ(status.pagado_acumulado)}</dd>
+            <dd className="tabular font-medium">{formatMoney(status.pagado_acumulado)}</dd>
           </div>
           <div>
             <dt className="text-ink-foreground/60 text-xs">A capital</dt>
-            <dd className="tabular font-medium">{formatGTQ(status.capital_acumulado)}</dd>
+            <dd className="tabular font-medium">{formatMoney(status.capital_acumulado)}</dd>
           </div>
           <div>
             <dt className="text-ink-foreground/60 text-xs">Interés y cargos</dt>
-            <dd className="tabular font-medium">{formatGTQ(status.interes_acumulado)}</dd>
+            <dd className="tabular font-medium">{formatMoney(status.interes_acumulado)}</dd>
           </div>
         </dl>
       </section>
@@ -394,23 +394,23 @@ export function DebtDetailPage() {
         <section className="border-warning/60 bg-warning-soft/60 grid gap-3 rounded-2xl border p-4 text-sm sm:grid-cols-3">
           <div>
             <p className="text-muted-foreground text-xs">Interés fijo por mes</p>
-            <p className="tabular text-lg font-semibold">{formatGTQ(flatInfo.cargo)}</p>
+            <p className="tabular text-lg font-semibold">{formatMoney(flatInfo.cargo)}</p>
             <p className="text-muted-foreground text-xs">Se suma aunque no pagues nada</p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs">Para cancelarlo este mes</p>
-            <p className="tabular text-lg font-semibold">{formatGTQ(flatInfo.cancelarHoy)}</p>
+            <p className="tabular text-lg font-semibold">{formatMoney(flatInfo.cancelarHoy)}</p>
             <p className="text-muted-foreground text-xs">
-              Cada mes que lo adelantes te ahorrás {formatGTQ(flatInfo.cargo)}
+              Cada mes que lo adelantes te ahorrás {formatMoney(flatInfo.cargo)}
             </p>
           </div>
           {flatInfo.alVencimiento != null && flatInfo.venc && (
             <div>
               <p className="text-muted-foreground text-xs">Si lo pagás en {formatPeriod(flatInfo.venc)}</p>
-              <p className="tabular text-destructive text-lg font-semibold">{formatGTQ(flatInfo.alVencimiento)}</p>
+              <p className="tabular text-destructive text-lg font-semibold">{formatMoney(flatInfo.alVencimiento)}</p>
               <p className="text-muted-foreground text-xs">
                 {flatInfo.alVencimiento > flatInfo.cancelarHoy
-                  ? `${formatGTQ(flatInfo.alVencimiento - flatInfo.cancelarHoy)} más que cancelarlo hoy`
+                  ? `${formatMoney(flatInfo.alVencimiento - flatInfo.cancelarHoy)} más que cancelarlo hoy`
                   : 'Vence este mes'}
               </p>
             </div>
@@ -544,7 +544,7 @@ export function DebtDetailPage() {
                 ? 'Solo se puede eliminar si no tiene pagos ni gastos. Se borran también sus cuotas y saldos mensuales.'
                 : activa
                   ? status.deuda_real > 0.005
-                    ? `Todavía figura una deuda real de ${formatGTQ(status.deuda_real)}. Registrá el último pago con saldo Q0 antes, si aplica.`
+                    ? `Todavía figura una deuda real de ${formatMoney(status.deuda_real)}. Registrá el último pago con saldo Q0 antes, si aplica.`
                     : 'Deja de contarse desde hoy en los totales y en el plan.'
                   : 'Vuelve a contarse en los totales.'}
             </AlertDialogDescription>

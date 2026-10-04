@@ -1,11 +1,33 @@
 import { z } from 'zod'
+import { decimalSeparator } from '@/lib/finance/currency'
+import { getCurrency } from '@/lib/format'
 
-/** "Q1,234.50" / "1234,5" / " 1234.5 " → 1234.5; '' → null; texto inválido → NaN. */
-export function parseAmount(raw: string): number | null {
-  const s = raw.trim().replace(/^Q\s*/i, '').replace(/\s/g, '')
-  if (s === '') return null
-  // Coma como separador decimal solo si no hay punto ("1234,5"); si no, la coma es de miles.
-  const normalized = /^\d+,\d{1,2}$/.test(s) ? s.replace(',', '.') : s.replace(/,/g, '')
+/**
+ * Monto escrito por el usuario → número con 2 decimales; '' → null; texto inválido → NaN.
+ * Acepta el símbolo de cualquier moneda ("Q1,234.50", "$ 1.234,56", "S/ 10", "10 €").
+ * Si aparecen coma y punto, el último es el decimal. Con un solo tipo de separador:
+ * - coma seguida de 1–2 dígitos al final es decimal ("1234,5"); si no, es de miles ("12,345");
+ * - punto es decimal, salvo en monedas con coma decimal donde "1.234" o "1.234.567" son miles.
+ */
+export function parseAmount(raw: string, decimal: '.' | ',' = decimalSeparator(getCurrency())): number | null {
+  const trimmed = raw.trim()
+  const s = trimmed
+    .replace(/^[^\d.,-]+/, '')
+    .replace(/[^\d.,]+$/, '')
+    .replace(/\s/g, '')
+  if (trimmed === '') return null
+  if (s === '') return Number.NaN
+
+  const lastComma = s.lastIndexOf(',')
+  const lastDot = s.lastIndexOf('.')
+  let normalized = s
+  if (lastComma >= 0 && lastDot >= 0) {
+    normalized = lastComma > lastDot ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '')
+  } else if (lastComma >= 0) {
+    normalized = /^-?\d+,\d{1,2}$/.test(s) ? s.replace(',', '.') : s.replace(/,/g, '')
+  } else if (lastDot >= 0 && decimal === ',' && /^-?\d{1,3}(\.\d{3})+$/.test(s)) {
+    normalized = s.replace(/\./g, '')
+  }
   if (!/^-?\d*\.?\d+$/.test(normalized)) return Number.NaN
   return Math.round(Number(normalized) * 100) / 100
 }
@@ -24,12 +46,16 @@ export const moneyField = (requiredMsg = 'Requerido') =>
     .string()
     .trim()
     .min(1, requiredMsg)
-    .transform(parseAmount)
+    .transform((s) => parseAmount(s))
     .pipe(z.number(numberMsg).nonnegative('No puede ser negativo'))
 
 /** Monto opcional: vacío → null (en la UI se muestra PENDIENTE cuando aplica). */
 export const optionalMoneyField = () =>
-  z.string().trim().transform(parseAmount).pipe(z.number(numberMsg).nonnegative('No puede ser negativo').nullable())
+  z
+    .string()
+    .trim()
+    .transform((s) => parseAmount(s))
+    .pipe(z.number(numberMsg).nonnegative('No puede ser negativo').nullable())
 
 /** Porcentaje en la UI ("60" = 60 %) → fracción en BD (0.6). Vacío → null. */
 export const optionalPercentField = () =>

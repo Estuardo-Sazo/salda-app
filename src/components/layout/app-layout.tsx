@@ -13,7 +13,7 @@ import {
   WifiOff,
   type LucideIcon,
 } from 'lucide-react'
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { useAuth } from '@/app/providers/auth'
 import { useTheme, type ThemePreference } from '@/app/providers/theme'
@@ -31,7 +31,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useProfile } from '@/features/common/queries'
 import { useOnline } from '@/hooks/use-online'
+import { setCurrency, useCurrency } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -168,6 +170,12 @@ function OfflineBanner() {
 
 export function AppLayout() {
   const [quickAdd, setQuickAdd] = useState(false)
+  // La moneda del perfil manda; al cambiarla se vuelve a pintar la pantalla con el formato nuevo.
+  const moneda = useProfile().data?.moneda
+  useEffect(() => {
+    if (moneda) setCurrency(moneda)
+  }, [moneda])
+  const currency = useCurrency()
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[240px_1fr]">
@@ -223,7 +231,7 @@ export function AppLayout() {
           className="mx-auto w-full max-w-5xl flex-1 px-4 pt-5 pb-28 focus:outline-none lg:px-8 lg:pb-12"
         >
           <Suspense fallback={<PageFallback />}>
-            <Outlet />
+            <Outlet key={currency} />
           </Suspense>
         </main>
       </div>

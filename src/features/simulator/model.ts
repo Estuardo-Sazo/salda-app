@@ -139,7 +139,7 @@ export function cancellationAmount(
   return { monto: (Math.round(debt.saldo * 100) + fuera) / 100, pendiente: true }
 }
 
-/** Monto sugerido del préstamo: lo necesario para cancelar las deudas elegidas, redondeado a Q100. */
+/** Monto sugerido del préstamo: lo necesario para cancelar las deudas elegidas, redondeado a 100. */
 export function suggestedLoanAmount(input: PlanInput, cancelar: string[]): number {
   const total = input.debts
     .filter((d) => cancelar.includes(d.id))

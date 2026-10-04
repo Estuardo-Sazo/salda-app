@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useDebtStatus } from '@/features/common/queries'
 import { summarizeExpenses } from '@/lib/finance/expenses'
 import { addMonths, normalizePeriod } from '@/lib/finance/period'
-import { currentPeriod, formatDate, formatGTQ, formatPercent, formatPeriodLong } from '@/lib/format'
+import { currentPeriod, formatDate, formatMoney, formatPercent, formatPeriodLong } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { usePeriodExpenses, type Expense } from './api'
 import { METODO_LABEL } from './schema'
@@ -59,7 +59,7 @@ function ExpenseRow({ e, tarjeta }: { e: Expense; tarjeta?: string }) {
         </div>
         <span className={cn('tabular text-sm font-medium', esTarjeta && 'text-destructive')}>
           {esTarjeta && <span className="sr-only">Deuda nueva: </span>}
-          {formatGTQ(e.monto)}
+          {formatMoney(e.monto)}
         </span>
       </Link>
     </li>
@@ -125,7 +125,7 @@ export function ExpensesPage() {
               <Card size="sm">
                 <CardContent>
                   <p className="text-muted-foreground text-xs">Total del mes</p>
-                  <p className="tabular mt-1 text-2xl font-semibold tracking-tight">{formatGTQ(summary.total)}</p>
+                  <p className="tabular mt-1 text-2xl font-semibold tracking-tight">{formatMoney(summary.total)}</p>
                   <p className="text-muted-foreground text-xs">{expenses.data.length} gastos</p>
                 </CardContent>
               </Card>
@@ -141,11 +141,11 @@ export function ExpensesPage() {
                       summary.tarjeta > 0 && 'text-destructive',
                     )}
                   >
-                    {formatGTQ(summary.tarjeta)}
+                    {formatMoney(summary.tarjeta)}
                   </p>
                   <p className="text-muted-foreground text-xs">
                     {summary.tasaTarjeta != null
-                      ? `≈ ${formatGTQ(summary.interesMensualTarjeta)}/mes al ${formatPercent(summary.tasaTarjeta)}`
+                      ? `≈ ${formatMoney(summary.interesMensualTarjeta)}/mes al ${formatPercent(summary.tasaTarjeta)}`
                       : summary.tarjeta > 0
                         ? 'tasa pendiente'
                         : 'sin compras con tarjeta'}
@@ -181,7 +181,7 @@ export function ExpensesPage() {
                     .filter(([, v]) => v > 0)
                     .map(([m, v]) => (
                       <Badge key={m} variant={m === 'tarjeta' ? 'destructive' : 'secondary'}>
-                        {METODO_LABEL[m as keyof typeof METODO_LABEL]} {formatGTQ(v)}
+                        {METODO_LABEL[m as keyof typeof METODO_LABEL]} {formatMoney(v)}
                       </Badge>
                     ))}
                 </div>

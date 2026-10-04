@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { currentPeriod, formatDate, formatGTQ, formatPeriod, formatPeriodShort, periodOf, todayISO } from './index'
+import { currentPeriod, formatDate, formatMoney, formatPeriod, formatPeriodShort, periodOf, todayISO } from './index'
 
 describe('formato GTQ y fechas', () => {
   it('formatea quetzales como en el plan', () => {
-    expect(formatGTQ(12345.67)).toBe('Q12,345.67')
-    expect(formatGTQ(null)).toBe('Q0.00')
-    expect(formatGTQ(-1234.5)).toBe('-Q1,234.50')
+    expect(formatMoney(12345.67)).toBe('Q12,345.67')
+    expect(formatMoney(null)).toBe('Q0.00')
+    expect(formatMoney(-1234.5)).toBe('-Q1,234.50')
   })
 
   it('fechas dd/mm/yyyy y meses "oct 2026"', () => {

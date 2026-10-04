@@ -3,7 +3,7 @@ import { dateField, moneyField } from '@/lib/forms'
 
 export const expenseSchema = z
   .object({
-    monto: moneyField('Ingresá el monto').refine((v) => v > 0, 'Debe ser mayor a Q0'),
+    monto: moneyField('Ingresá el monto').refine((v) => v > 0, 'Debe ser mayor a cero'),
     descripcion: z.string().trim().min(1, '¿En qué fue? (ej. "Supermercado")').max(80),
     categoria: z.string().min(1, 'Elegí una categoría'),
     metodo: z.enum(['efectivo', 'debito', 'tarjeta', 'transferencia']),

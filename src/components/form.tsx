@@ -1,6 +1,8 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { currencySymbol } from '@/lib/finance/currency'
+import { useCurrency } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 /** Etiqueta + control + ayuda/error. El control recibe el id y aria-describedby. */
@@ -38,8 +40,18 @@ export function Field({
   )
 }
 
-/** Input de quetzales: teclado decimal en el celular y prefijo "Q". */
-export function MoneyInput({ className, large = false, ...props }: ComponentProps<'input'> & { large?: boolean }) {
+/** Input de montos: teclado decimal en el celular y el símbolo de la moneda del usuario ("Q", "$", "S/"). */
+export function MoneyInput({
+  className,
+  large = false,
+  style,
+  currency,
+  ...props
+}: ComponentProps<'input'> & { large?: boolean; /** Por defecto, la moneda del usuario. */ currency?: string }) {
+  const actual = useCurrency()
+  const symbol = currencySymbol(currency ?? actual)
+  // El texto empieza después del símbolo, sea de 1 o de varios caracteres.
+  const paddingLeft = `calc(${large ? '1rem' : '0.75rem'} + ${symbol.length * (large ? 1.05 : 0.6)}em + 0.4rem)`
   return (
     <div className="relative">
       <span
@@ -49,17 +61,14 @@ export function MoneyInput({ className, large = false, ...props }: ComponentProp
           large && 'left-4 text-2xl font-medium',
         )}
       >
-        Q
+        {symbol}
       </span>
       <Input
         type="text"
         inputMode="decimal"
         autoComplete="off"
-        className={cn(
-          'tabular h-11 pl-7',
-          large && 'h-16 pl-10 text-3xl font-semibold tracking-tight md:text-3xl',
-          className,
-        )}
+        className={cn('tabular h-11', large && 'h-16 text-3xl font-semibold tracking-tight md:text-3xl', className)}
+        style={{ paddingLeft, ...style }}
         {...props}
       />
     </div>

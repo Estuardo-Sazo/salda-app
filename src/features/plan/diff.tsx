@@ -1,5 +1,5 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
-import { formatGTQ } from '@/lib/format'
+import { formatMoney } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { diffTone } from './model'
 
@@ -19,7 +19,7 @@ export function DiffAmount({ value, className }: { value: number | null; classNa
       <Icon className="size-3.5 shrink-0" aria-hidden />
       <span className="sr-only">{good ? 'Adelantado' : 'Atrasado'}</span>
       {value > 0 ? '+' : value < 0 ? '−' : ''}
-      {formatGTQ(Math.abs(value))}
+      {formatMoney(Math.abs(value))}
     </span>
   )
 }
@@ -32,7 +32,7 @@ export function ChangeAmount({ value }: { value: number | null }) {
     <span className={cn('tabular whitespace-nowrap', bajo ? 'text-success' : 'text-destructive')}>
       <span className="sr-only">{bajo ? 'Bajó ' : 'Subió '}</span>
       {value > 0 ? '+' : value < 0 ? '−' : ''}
-      {formatGTQ(Math.abs(value))}
+      {formatMoney(Math.abs(value))}
     </span>
   )
 }

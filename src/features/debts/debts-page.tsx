@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDebtStatus, type DebtStatus } from '@/features/common/queries'
-import { formatDate, formatGTQ, formatPercent } from '@/lib/format'
+import { formatDate, formatMoney, formatPercent } from '@/lib/format'
 import { TIPO_LABEL } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -69,7 +69,7 @@ function DebtCard({ debt }: { debt: DebtStatus }) {
             <Progress value={progress} aria-label={`Avance de ${debt.nombre}`} className="h-2" />
             <p className="text-muted-foreground mt-1.5 flex justify-between text-xs">
               <span>{progress.toFixed(0)} % pagado del saldo base</span>
-              <span className="tabular">base {formatGTQ(debt.saldo_base)}</span>
+              <span className="tabular">base {formatMoney(debt.saldo_base)}</span>
             </p>
           </div>
         )}

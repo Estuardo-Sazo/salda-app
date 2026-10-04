@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useDebtStatus } from '@/features/common/queries'
 import { CATEGORIAS, monthlyInterestOn } from '@/lib/finance/expenses'
 import { addMonths } from '@/lib/finance/period'
-import { formatGTQ, formatPercent, formatPeriod, periodOf, todayISO } from '@/lib/format'
+import { formatMoney, formatPercent, formatPeriod, periodOf, todayISO } from '@/lib/format'
 import { parseAmount, toInput } from '@/lib/forms'
 import { cn } from '@/lib/utils'
 import { useDeleteExpense, useExpense, useExpenseDescriptions, useSaveExpense } from './api'
@@ -114,9 +114,9 @@ export function ExpenseFormPage() {
     try {
       await save.mutateAsync({ id, values })
       if (values.metodo === 'tarjeta') {
-        toast.warning(`Deuda nueva: ${formatGTQ(values.monto)} en ${tarjeta?.nombre ?? 'la tarjeta'}`)
+        toast.warning(`Deuda nueva: ${formatMoney(values.monto)} en ${tarjeta?.nombre ?? 'la tarjeta'}`)
       } else {
-        toast.success(`Gasto de ${formatGTQ(values.monto)} registrado`)
+        toast.success(`Gasto de ${formatMoney(values.monto)} registrado`)
       }
       navigate(volver, { replace: true })
     } catch (e) {
@@ -223,12 +223,12 @@ export function ExpenseFormPage() {
               <p className="text-muted-foreground">
                 {tarjeta && monto && !Number.isNaN(monto) ? (
                   <>
-                    Sumás <span className="text-foreground font-medium">{formatGTQ(monto)}</span> a {tarjeta.nombre}
+                    Sumás <span className="text-foreground font-medium">{formatMoney(monto)}</span> a {tarjeta.nombre}
                     {tarjeta.tasa_anual != null ? (
                       <>
                         {' '}
                         al {formatPercent(tarjeta.tasa_anual)} anual. Si no la pagás completa al corte, cuesta ≈{' '}
-                        <span className="text-foreground font-medium">{formatGTQ(interesMes)}</span> de interés por mes.
+                        <span className="text-foreground font-medium">{formatMoney(interesMes)}</span> de interés por mes.
                       </>
                     ) : (
                       ' (tasa PENDIENTE DE CONFIRMAR).'

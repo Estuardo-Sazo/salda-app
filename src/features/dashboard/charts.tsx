@@ -12,7 +12,7 @@ import {
   type TooltipContentProps,
   type TooltipValueType,
 } from 'recharts'
-import { formatGTQ, formatGTQCompact, formatPeriod, formatPeriodShort } from '@/lib/format'
+import { formatMoney, formatMoneyCompact, formatPeriod, formatPeriodShort } from '@/lib/format'
 import { axisProps, seriesColor } from './chart-style'
 import type { DashboardModel } from './model'
 
@@ -30,7 +30,7 @@ export function ChartTooltip({ active, payload, label }: TooltipContentProps<Too
               <span className="size-2 rounded-full" style={{ background: p.color }} aria-hidden />
               {p.name}
             </span>
-            <span className="tabular font-medium">{formatGTQ(Number(p.value))}</span>
+            <span className="tabular font-medium">{formatMoney(Number(p.value))}</span>
           </li>
         ))}
       </ul>
@@ -75,7 +75,7 @@ export function RealVsGoalChart({ data }: { data: DashboardModel['serie'] }) {
           <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
             <XAxis dataKey="periodo" tickFormatter={formatPeriodShort} minTickGap={16} {...axisProps} />
-            <YAxis tickFormatter={formatGTQCompact} width={64} {...axisProps} />
+            <YAxis tickFormatter={formatMoneyCompact} width={64} {...axisProps} />
             <Tooltip content={ChartTooltip} cursor={{ stroke: 'var(--border)', strokeWidth: 1 }} />
             <Line
               name="Meta"
@@ -117,8 +117,8 @@ export function RealVsGoalChart({ data }: { data: DashboardModel['serie'] }) {
               {data.map((r) => (
                 <tr key={r.periodo} className="border-t">
                   <td className="px-3 py-1.5">{formatPeriod(r.periodo)}</td>
-                  <td className="px-3 py-1.5 text-right">{r.real == null ? '—' : formatGTQ(r.real)}</td>
-                  <td className="px-3 py-1.5 text-right">{r.meta == null ? '—' : formatGTQ(r.meta)}</td>
+                  <td className="px-3 py-1.5 text-right">{r.real == null ? '—' : formatMoney(r.real)}</td>
+                  <td className="px-3 py-1.5 text-right">{r.meta == null ? '—' : formatMoney(r.meta)}</td>
                 </tr>
               ))}
             </tbody>
@@ -143,7 +143,7 @@ export function BalancesByDebtChart({
           <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="30%">
             <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
             <XAxis dataKey="periodo" tickFormatter={formatPeriodShort} minTickGap={8} {...axisProps} />
-            <YAxis tickFormatter={formatGTQCompact} width={64} {...axisProps} />
+            <YAxis tickFormatter={formatMoneyCompact} width={64} {...axisProps} />
             <Tooltip content={ChartTooltip} cursor={{ fill: 'var(--muted)', opacity: 0.6 }} />
             <Legend
               itemSorter={null}

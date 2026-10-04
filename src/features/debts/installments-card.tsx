@@ -29,7 +29,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { cuotasRestantes, fueraDeSaldo } from '@/lib/finance/installments'
-import { formatGTQ } from '@/lib/format'
+import { formatMoney } from '@/lib/format'
 import { toInput } from '@/lib/forms'
 import { useChargeInstallment, useDeleteInstallment, useSaveInstallment, type Installment } from './api'
 import { installmentSchema, type InstallmentFormInput, type InstallmentFormOutput } from './schema'
@@ -162,8 +162,8 @@ export function InstallmentsCard({ debtId, installments }: { debtId: string; ins
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{i.descripcion}</p>
                       <p className="text-muted-foreground text-xs">
-                        {i.cuotas_cobradas} de {i.cuotas_totales} cobradas · cuota {formatGTQ(i.monto_cuota)}
-                        {i.cargo_extra_por_cuota > 0 && ` · cargo ${formatGTQ(i.cargo_extra_por_cuota)}`}
+                        {i.cuotas_cobradas} de {i.cuotas_totales} cobradas · cuota {formatMoney(i.monto_cuota)}
+                        {i.cargo_extra_por_cuota > 0 && ` · cargo ${formatMoney(i.cargo_extra_por_cuota)}`}
                       </p>
                     </div>
                     <div className="text-right">
