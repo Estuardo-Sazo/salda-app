@@ -13,6 +13,7 @@ import { ExpenseFormPage } from '@/features/expenses/expense-form-page'
 import { ExpensesPage } from '@/features/expenses/expenses-page'
 import { MorePage } from '@/features/more/more-page'
 import { OnboardingPage } from '@/features/onboarding/onboarding-page'
+import { WizardPage } from '@/features/onboarding/wizard-page'
 import { PaymentFormPage } from '@/features/payments/payment-form-page'
 import { BalancesPage } from '@/features/plan/balances-page'
 import { PlanPage } from '@/features/plan/plan-page'
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'bienvenida', element: <OnboardingPage /> },
+          { path: 'bienvenida/cero', element: <WizardPage /> },
           { path: 'registrar', element: <RegisterPage /> },
           { path: 'registrar/pago', element: <PaymentFormPage /> },
           { path: 'registrar/gasto', element: <ExpenseFormPage /> },

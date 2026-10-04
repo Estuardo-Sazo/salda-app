@@ -34,7 +34,7 @@ function Option({
   highlighted?: boolean
 }) {
   return (
-    <Card className={highlighted ? 'ring-primary/60 ring-2' : 'opacity-80'}>
+    <Card className={highlighted ? 'ring-primary/60 ring-2' : undefined}>
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <span className="bg-ink text-mint grid size-10 place-items-center rounded-xl">
@@ -201,12 +201,16 @@ export function OnboardingPage() {
           )}
         </Option>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4">
           <Option
             icon={Sparkles}
             title="Empezar desde cero"
-            description="Wizard: ingreso → gastos fijos → deudas → cuotas fuera de saldo."
-            badge="Fase 7"
+            description="Paso a paso: ingreso → gastos fijos → deudas → cuotas fuera de saldo → plan."
+            footer={
+              <Button variant="outline" className="h-11" onClick={() => navigate('/bienvenida/cero')}>
+                Empezar
+              </Button>
+            }
           />
           <Option
             icon={FileSpreadsheet}
