@@ -38,3 +38,6 @@ seed/initial-data.json
 *.private.test.ts
 
 .private-patterns
+
+# Capturas para el portafolio (se generan con datos ficticios)
+portfolio/
