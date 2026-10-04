@@ -17,6 +17,7 @@ import { PaymentFormPage } from '@/features/payments/payment-form-page'
 import { BalancesPage } from '@/features/plan/balances-page'
 import { PlanPage } from '@/features/plan/plan-page'
 import { RegisterPage } from '@/features/register/register-page'
+import { ReportsPage } from '@/features/reports/reports-page'
 import { SimulatorPage } from '@/features/simulator/simulator-page'
 
 export const router = createBrowserRouter([
@@ -42,7 +43,7 @@ export const router = createBrowserRouter([
           { path: 'saldos', element: <BalancesPage /> },
           { path: 'plan', element: <PlanPage /> },
           { path: 'simulador', element: <SimulatorPage /> },
-          { path: 'reportes', element: <ComingSoon title="Reportes" fase={7} /> },
+          { path: 'reportes', element: <ReportsPage /> },
           { path: 'mas', element: <MorePage /> },
           { path: 'mas/ingresos-extra', element: <ExtraIncomePage /> },
           { path: 'mas/cobros', element: <ComingSoon title="Dinero que me deben" fase={7} /> },
