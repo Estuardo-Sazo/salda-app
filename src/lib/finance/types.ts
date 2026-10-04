@@ -41,6 +41,8 @@ export interface PlanInput {
   gastosFijos?: number
   /** Ingresos extra por período (aguinaldo, Bono 14): suman al flujo libre de ese mes. */
   ingresosExtra?: Record<string, number>
+  /** Código ISO de la moneda del usuario para los textos del plan (por defecto GTQ). */
+  moneda?: string
   maxMeses?: number
 }
 

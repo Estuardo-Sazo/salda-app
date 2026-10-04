@@ -1,5 +1,6 @@
 import { D, EPSILON, ZERO, dec, sumMoney, toMoney, type Dec } from './money'
 import { addMonths, normalizePeriod } from './period'
+import { formatCurrency } from './currency'
 import { formatPeriodName } from './period-name'
 import type { DebtInput, DebtMonth, Liquidacion, PlanInput, PlanMonth, PlanResult } from './types'
 
@@ -59,6 +60,9 @@ function initState(debt: DebtInput): DebtState {
   }
 }
 
+/** Montos en los textos del plan con la moneda del usuario ("Q45.00", "$45.00"). */
+const moneyFormatter = (input: PlanInput) => (value: Dec | number) => formatCurrency(toMoney(dec(value)), input.moneda)
+
 /** Orden de prioridad para aplicar el sobrante según la estrategia. */
 function priorityOrder(states: DebtState[], estrategia: PlanInput['estrategia']): DebtState[] {
   const sorted = [...states]
@@ -72,6 +76,7 @@ function priorityOrder(states: DebtState[], estrategia: PlanInput['estrategia'])
 }
 
 function describeAssumptions(input: PlanInput, states: DebtState[]): { supuestos: string[]; advertencias: string[] } {
+  const money = moneyFormatter(input)
   const supuestos = [
     'Interés mensual = saldo de cierre del mes anterior × tasa anual nominal / 12.',
     'El seguro de las tarjetas se cobra solo mientras haya saldo.',
@@ -93,13 +98,13 @@ function describeAssumptions(input: PlanInput, states: DebtState[]): { supuestos
     const d = s.input
     if (d.tasaAnual == null) advertencias.push(`${d.nombre}: tasa PENDIENTE DE CONFIRMAR, se proyecta con 0 %.`)
     if (d.tipo === 'tarjeta' && d.seguroMensual == null) {
-      advertencias.push(`${d.nombre}: seguro PENDIENTE DE CONFIRMAR, se proyecta con Q0.`)
+      advertencias.push(`${d.nombre}: seguro PENDIENTE DE CONFIRMAR, se proyecta con ${money(0)}.`)
     }
     if (d.tipo === 'tarjeta' && s.seguro.gt(0)) {
-      supuestos.push(`${d.nombre}: seguro de Q${s.seguro.toFixed(2)} mientras haya saldo.`)
+      supuestos.push(`${d.nombre}: seguro de ${money(s.seguro)} mientras haya saldo.`)
     }
     if (s.fijo) {
-      supuestos.push(`${d.nombre}: interés fijo de Q${s.fijo.toFixed(2)} por mes sobre el monto original.`)
+      supuestos.push(`${d.nombre}: interés fijo de ${money(s.fijo)} por mes sobre el monto original.`)
     }
     if (s.vencimiento) {
       supuestos.push(
@@ -108,7 +113,7 @@ function describeAssumptions(input: PlanInput, states: DebtState[]): { supuestos
     }
     for (const i of s.installments) {
       if (i.cargo.gt(0)) {
-        supuestos.push(`${d.nombre}: cargo extra de Q${i.cargo.toFixed(2)} en cada cuota pendiente (${i.restantes}).`)
+        supuestos.push(`${d.nombre}: cargo extra de ${money(i.cargo)} en cada cuota pendiente (${i.restantes}).`)
       }
     }
   }
@@ -124,6 +129,7 @@ export function projectPlan(input: PlanInput): PlanResult {
   const libreBase = dec(input.ingresoMensual ?? 0).minus(input.gastosFijos ?? 0)
   const extras = new Map(Object.entries(input.ingresosExtra ?? {}).map(([p, v]) => [normalizePeriod(p), dec(v)]))
   const { supuestos, advertencias } = describeAssumptions(input, states)
+  const money = moneyFormatter(input)
 
   const deudaInicial = sumMoney(states.map(totalDeuda))
   const liquidaciones: Record<string, Liquidacion | null> = {}
@@ -221,7 +227,7 @@ export function projectPlan(input: PlanInput): PlanResult {
     for (const [s, monto] of obligatorios) {
       if (libreMes.lt(0)) {
         advertencias.push(
-          `En ${formatPeriodName(periodo)} vence ${s.input.nombre} (Q${monto.toFixed(2)}): el flujo libre de ese mes queda en −Q${libreMes.abs().toFixed(2)}.`,
+          `En ${formatPeriodName(periodo)} vence ${s.input.nombre} (${money(monto)}): el flujo libre de ese mes queda en ${money(libreMes)}.`,
         )
       }
     }

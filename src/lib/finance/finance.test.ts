@@ -109,6 +109,14 @@ describe('projectPlan', () => {
     expect(r.supuestos.join(' ')).toContain('Q10.00')
   })
 
+  it('los textos del plan usan la moneda del usuario', () => {
+    const debt = card('t', 1000, 0.24, 300, { seguroMensual: 1500 })
+    const usd = projectPlan(plan([debt], { moneda: 'USD' }))
+    expect(usd.supuestos.join(' ')).toContain('seguro de $1,500.00')
+    const gtq = projectPlan(plan([debt]))
+    expect(gtq.supuestos.join(' ')).toContain('seguro de Q1,500.00')
+  })
+
   it('capital_pendiente manda sobre monto × cuotas', () => {
     const debt = card('t', 0, 0, 500, {
       installments: [
@@ -191,7 +199,7 @@ describe('préstamo de interés fijo con pago único', () => {
   it('avisa si el flujo libre no alcanza el mes del vencimiento y suma los ingresos extra', () => {
     const sinExtra = projectPlan(plan([fijo], { presupuestoDeudas: 0 }))
     expect(sinExtra.meses[2]!.flujoLibre).toBe(3000 - 6000)
-    expect(sinExtra.advertencias.join(' ')).toMatch(/En ene 2027 vence fijo \(Q6000\.00\).*−Q3000\.00/)
+    expect(sinExtra.advertencias.join(' ')).toMatch(/En ene 2027 vence fijo \(Q6,000\.00\).*-Q3,000\.00/)
 
     const conExtra = projectPlan(plan([fijo], { presupuestoDeudas: 0, ingresosExtra: { '2027-01': 3500 } }))
     expect(conExtra.meses[2]!.flujoLibre).toBe(500)
