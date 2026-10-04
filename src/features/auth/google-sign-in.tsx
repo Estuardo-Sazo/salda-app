@@ -112,7 +112,11 @@ export function GoogleSignIn() {
   return (
     <div className="mb-4 grid gap-4">
       <div className="relative min-h-11">
-        {state !== 'respaldo' && <div ref={container} className="flex h-11 w-full justify-center" />}
+        {state !== 'respaldo' && (
+          // El botón de Google es un iframe: con la página en modo oscuro y el iframe en claro, el navegador
+          // le pinta un fondo blanco. `color-scheme: light` en el contenedor lo deja transparente.
+          <div ref={container} className="flex h-11 w-full justify-center [color-scheme:light]" />
+        )}
         {state === 'cargando' && <div className="bg-muted absolute inset-0 animate-pulse rounded-full" aria-hidden />}
         {state === 'respaldo' && (
           <Button type="button" variant="outline" className="h-11 w-full rounded-full" onClick={conRedireccion}>
