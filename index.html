@@ -18,27 +18,48 @@
     </script>
     <style>
       /* Pantalla de carga mientras llega el JavaScript (React la reemplaza al montar). */
-      html { background: oklch(0.975 0.006 165); }
-      html.dark { background: oklch(0.155 0.016 212); }
-      .boot { min-height: 100dvh; display: grid; place-items: center; }
-      .boot svg { width: 56px; height: 56px; animation: boot 1.2s ease-in-out infinite alternate; }
-      @keyframes boot { from { opacity: 0.55; } to { opacity: 1; } }
-      @media (prefers-reduced-motion: reduce) { .boot svg { animation: none; } }
+      html {
+        background: oklch(0.975 0.006 165);
+      }
+      html.dark {
+        background: oklch(0.155 0.016 212);
+      }
+      .boot {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+      }
+      .boot svg {
+        width: 56px;
+        height: 56px;
+        animation: boot 1.2s ease-in-out infinite alternate;
+      }
+      @keyframes boot {
+        from {
+          opacity: 0.55;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot svg {
+          animation: none;
+        }
+      }
     </style>
   </head>
   <body>
     <div id="root">
       <div class="boot" role="status" aria-label="Cargando Saldá">
         <svg viewBox="0 0 512 512" aria-hidden="true">
-          <rect width="512" height="512" rx="118" fill="#0F2D32" />
-          <path
-            d="M324 164C304 136 270 122 232 122C180 122 142 150 142 194C142 242 182 258 234 272C290 287 330 304 330 352C330 396 290 416 238 416C192 416 154 398 132 368"
-            fill="none"
-            stroke="#3FD9A6"
-            stroke-width="60"
-            stroke-linecap="round"
-          />
-          <circle cx="392" cy="412" r="33" fill="#D4FF5E" />
+          <rect width="512" height="512" rx="96" fill="#12322A" />
+          <g transform="translate(-6 -4)">
+            <circle cx="228" cy="228" r="120" fill="none" stroke="#E8B53A" stroke-width="48" />
+            <path d="M270 272C363 280 424 371 440 440Z" fill="#3DBE7A" />
+            <path d="M270 272C293 351 379 416 440 440Z" fill="#23946A" />
+            <circle cx="270" cy="272" r="20" fill="#C4452D" />
+          </g>
         </svg>
       </div>
     </div>
