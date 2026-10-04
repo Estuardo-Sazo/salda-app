@@ -13,6 +13,7 @@ export interface RawTables {
   expenses: Tables<'expenses'>[]
   extra_incomes: Tables<'extra_incomes'>[]
   receivables: Tables<'receivables'>[]
+  receivable_payments: Tables<'receivable_payments'>[]
   plans: Tables<'plans'>[]
   plan_rows: Tables<'plan_rows'>[]
   monthly_totals: Tables<'v_monthly_totals'>[]
@@ -103,6 +104,16 @@ export interface BackupPlan {
   rows: { periodo: string; debt: string | null; saldo: number; pago: number; interes_cargos: number }[]
 }
 
+export interface BackupReceivable {
+  persona: string
+  monto: number
+  fecha_prestamo: string
+  /** Interés mensual sobre lo prestado (0.10 = 10 %); null = sin interés. */
+  tasa_mensual: number | null
+  notas: string | null
+  cobros: { fecha: string; monto: number; notas: string | null }[]
+}
+
 /** Totales que se comparan después de restaurar (criterio de aceptación de la fase 7). */
 export interface BackupTotal {
   periodo: string
@@ -123,7 +134,7 @@ export interface RestorePayload {
   payments: BackupPayment[]
   expenses: BackupExpense[]
   extra_incomes: { periodo: string; concepto: string; monto: number }[]
-  receivables: { persona: string; monto: number; saldo: number; notas: string | null }[]
+  receivables: BackupReceivable[]
   plans: BackupPlan[]
 }
 
@@ -226,12 +237,22 @@ export function buildBackup(t: RawTables, exportadoEn: string): Backup {
     extra_incomes: [...t.extra_incomes]
       .sort(byPeriodo)
       .map((x) => ({ periodo: x.periodo, concepto: x.concepto, monto: n(x.monto) })),
-    receivables: t.receivables.map((r) => ({
-      persona: r.persona,
-      monto: n(r.monto),
-      saldo: n(r.saldo),
-      notas: r.notas,
-    })),
+    receivables: [...t.receivables]
+      .sort(
+        (a, b) =>
+          a.fecha_prestamo.localeCompare(b.fecha_prestamo) || (a.created_at ?? '').localeCompare(b.created_at ?? ''),
+      )
+      .map((r) => ({
+        persona: r.persona,
+        monto: n(r.monto),
+        fecha_prestamo: r.fecha_prestamo,
+        tasa_mensual: nn(r.tasa_mensual),
+        notas: r.notas,
+        cobros: t.receivable_payments
+          .filter((c) => c.receivable_id === r.id)
+          .sort((a, b) => a.fecha.localeCompare(b.fecha) || (a.created_at ?? '').localeCompare(b.created_at ?? ''))
+          .map((c) => ({ fecha: c.fecha, monto: n(c.monto), notas: c.notas })),
+      })),
     plans: [...t.plans]
       .sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''))
       .map((p) => ({

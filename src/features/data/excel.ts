@@ -8,6 +8,7 @@ import type {
   BackupExpense,
   BackupInstallment,
   BackupPayment,
+  BackupReceivable,
   BackupSnapshot,
   RestorePayload,
 } from './backup'
@@ -26,6 +27,7 @@ export const SHEETS = {
   fijos: { name: 'Gastos fijos', header: 3 },
   ingresos: { name: 'Ingresos extra', header: 3 },
   cobros: { name: 'Dinero que me deben', header: 3 },
+  abonos: { name: 'Cobros', header: 3 },
   perfil: { name: 'Perfil', header: 3 },
   detalle: { name: 'Saldos detalle', header: 3 },
 } as const
@@ -271,12 +273,29 @@ export function buildWorkbook(b: Backup): XLSX.WorkBook {
       [
         { header: 'Persona', value: (x) => x.persona, width: 24 },
         { header: 'Monto', value: (x) => x.monto, fmt: 'money' },
-        { header: 'Saldo', value: (x) => x.saldo, fmt: 'money' },
+        { header: 'Fecha préstamo', value: (x) => formatDate(x.fecha_prestamo) },
+        { header: 'Interés mensual', value: (x) => x.tasa_mensual, fmt: 'percent' },
         { header: 'Notas', value: (x) => x.notas, width: 30 },
       ],
       b.receivables,
     ),
     SHEETS.cobros.name,
+  )
+
+  add(
+    sheet<{ persona: string; fecha: string; monto: number; notas: string | null }>(
+      'Cobros de dinero que me deben (abonos)',
+      nota,
+      SHEETS.abonos.header,
+      [
+        { header: 'Persona', value: (x) => x.persona, width: 24 },
+        { header: 'Fecha', value: (x) => formatDate(x.fecha) },
+        { header: 'Monto', value: (x) => x.monto, fmt: 'money' },
+        { header: 'Notas', value: (x) => x.notas, width: 30 },
+      ],
+      b.receivables.flatMap((r) => r.cobros.map((c) => ({ ...c, persona: r.persona }))),
+    ),
+    SHEETS.abonos.name,
   )
 
   const perfil: [string, string | number | null][] = [
@@ -838,23 +857,82 @@ export function readWorkbook(wb: XLSX.WorkBook, periodoActual: string): ExcelImp
   const tCobros = readTable(wb, SHEETS.cobros.name, 'Persona')
   if (tCobros) {
     const rep = report(SHEETS.cobros.name, tCobros)
+    const tAbonos = readTable(wb, SHEETS.abonos.name, 'Persona')
     for (const r of tCobros.rows) {
+      const err = (mensaje: string) => rep.errores.push({ hoja: rep.hoja, fila: r.fila, mensaje })
       const persona = String(r.get('Persona') ?? '').trim()
       const monto = parseNumberCell(r.get('Monto'))
-      const saldo = parseNumberCell(r.get('Saldo')) ?? monto
-      if (!persona || monto == null || Number.isNaN(monto) || saldo == null || Number.isNaN(saldo)) {
-        rep.errores.push({ hoja: rep.hoja, fila: r.fila, mensaje: 'Persona o monto inválido' })
+      const fechaCell = r.get('Fecha préstamo')
+      const fecha = isBlank(fechaCell) ? periodoActual : parseDateCell(fechaCell)
+      const tasa = parseNumberCell(r.get('Interés mensual'))
+      if (!persona || monto == null || Number.isNaN(monto) || monto <= 0) {
+        err('Persona o monto inválido')
         continue
+      }
+      if (!fecha) {
+        err(`${persona}: fecha del préstamo inválida`)
+        continue
+      }
+      if (tasa != null && (Number.isNaN(tasa) || tasa < 0)) {
+        err(`${persona}: interés mensual inválido`)
+        continue
+      }
+      const cobros: BackupReceivable['cobros'] = []
+      // Formato anterior (columna Saldo, sin hoja Cobros): lo ya cobrado es monto − saldo.
+      const saldo = parseNumberCell(r.get('Saldo'))
+      if (!tAbonos && saldo != null && !Number.isNaN(saldo) && saldo < monto) {
+        cobros.push({
+          fecha,
+          monto: Math.round((monto - saldo) * 100) / 100,
+          notas: 'Cobrado antes de registrar cobros',
+        })
       }
       payload.receivables.push({
         persona,
         monto,
-        saldo,
+        fecha_prestamo: fecha,
+        // "10" o "10%" → 0.10; una fracción (0.1) se respeta.
+        tasa_mensual: tasa == null ? null : tasa > 1 ? Math.round(tasa * 100) / 10000 : tasa,
         notas: isBlank(r.get('Notas')) ? null : String(r.get('Notas')),
+        cobros,
       })
       rep.validas++
     }
     reportes.push(rep)
+
+    if (tAbonos) {
+      const repA = report(SHEETS.abonos.name, tAbonos)
+      const porPersona = new Map<string, BackupReceivable[]>()
+      for (const x of payload.receivables) {
+        const k = normName(x.persona)
+        porPersona.set(k, [...(porPersona.get(k) ?? []), x])
+      }
+      for (const r of tAbonos.rows) {
+        const destino = porPersona.get(normName(String(r.get('Persona') ?? '')))
+        const fecha = parseDateCell(r.get('Fecha'))
+        const monto = parseNumberCell(r.get('Monto'))
+        if (!destino)
+          repA.errores.push({
+            hoja: repA.hoja,
+            fila: r.fila,
+            mensaje: `"${r.get('Persona') ?? ''}" no está en Dinero que me deben`,
+          })
+        else if (!fecha)
+          repA.errores.push({ hoja: repA.hoja, fila: r.fila, mensaje: 'Fecha inválida (usá dd/mm/aaaa)' })
+        else if (monto == null || Number.isNaN(monto) || monto <= 0)
+          repA.errores.push({ hoja: repA.hoja, fila: r.fila, mensaje: 'Monto inválido' })
+        else {
+          // Con nombres repetidos, el cobro va al préstamo más reciente anterior a la fecha.
+          const candidato = [...destino].reverse().find((x) => x.fecha_prestamo <= fecha) ?? destino[0]!
+          if (destino.length > 1)
+            repA.avisos.push(`"${candidato.persona}" tiene varios préstamos: revisá a cuál quedó cada cobro.`)
+          candidato.cobros.push({ fecha, monto, notas: isBlank(r.get('Notas')) ? null : String(r.get('Notas')) })
+          repA.validas++
+        }
+      }
+      repA.avisos = [...new Set(repA.avisos)]
+      reportes.push(repA)
+    }
   }
 
   const tPerfil = readTable(wb, SHEETS.perfil.name, 'Campo')

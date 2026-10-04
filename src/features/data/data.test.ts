@@ -179,7 +179,21 @@ const tables: RawTables = {
     },
   ],
   extra_incomes: [{ id: 'x1', user_id: U, periodo: '2026-12-01', concepto: 'Aguinaldo', monto: 5000, created_at: T }],
-  receivables: [{ id: 'r1', user_id: U, persona: 'Beto', monto: 300, saldo: 100, notas: null, created_at: T }],
+  receivables: [
+    {
+      id: 'r1',
+      user_id: U,
+      persona: 'Beto',
+      monto: 1000,
+      fecha_prestamo: '2026-10-01',
+      tasa_mensual: 0.1,
+      notas: null,
+      created_at: T,
+    },
+  ],
+  receivable_payments: [
+    { id: 'rp1', user_id: U, receivable_id: 'r1', fecha: '2026-10-15', monto: 500, notas: 'quincena', created_at: T },
+  ],
   plans: [
     {
       id: 'pl1',
@@ -453,6 +467,55 @@ describe('Excel: archivo armado a mano', () => {
       { debt: 'xl1', periodo: '2026-10-01', saldo: 2000, cuotas_fuera_saldo: 300, origen: 'historial' },
     ])
     expect(reportes.find((r) => r.hoja === 'Saldos mensuales')!.avisos[0]).toMatch(/"Otra"/)
+  })
+
+  it('dinero que me deben: % mensual, cobros por persona y el formato anterior con saldo', () => {
+    const base = [['Dinero que me deben'], [], ['Persona', 'Monto', 'Fecha préstamo', 'Interés mensual', 'Notas']]
+    const conCobros = readWorkbook(
+      libro({
+        Deudas: deudas,
+        'Dinero que me deben': [
+          ...base,
+          ['Beto', 1000, '01/10/2026', '10%', null],
+          ['Caro', 500, null, null, 'sin interés'],
+        ],
+        Cobros: [
+          [],
+          [],
+          ['Persona', 'Fecha', 'Monto', 'Notas'],
+          ['beto', '15/10/2026', 500, 'quincena'],
+          ['Nadie', '15/10/2026', 1, null],
+        ],
+      }),
+      '2026-10-01',
+    )
+    expect(conCobros.payload.receivables).toEqual([
+      {
+        persona: 'Beto',
+        monto: 1000,
+        fecha_prestamo: '2026-10-01',
+        tasa_mensual: 0.1,
+        notas: null,
+        cobros: [{ fecha: '2026-10-15', monto: 500, notas: 'quincena' }],
+      },
+      {
+        persona: 'Caro',
+        monto: 500,
+        fecha_prestamo: '2026-10-01',
+        tasa_mensual: null,
+        notas: 'sin interés',
+        cobros: [],
+      },
+    ])
+    expect(conCobros.reportes.find((r) => r.hoja === 'Cobros')!.errores).toHaveLength(1)
+
+    const anterior = readWorkbook(
+      libro({ Deudas: deudas, 'Dinero que me deben': [[], [], ['Persona', 'Monto', 'Saldo'], ['Beto', 300, 100]] }),
+      '2026-10-01',
+    )
+    expect(anterior.payload.receivables[0]!.cobros).toEqual([
+      { fecha: '2026-10-01', monto: 200, notas: 'Cobrado antes de registrar cobros' },
+    ])
   })
 
   it('sin hoja Deudas no se puede importar', () => {

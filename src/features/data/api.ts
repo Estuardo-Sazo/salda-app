@@ -22,6 +22,7 @@ type TableName =
   | 'expenses'
   | 'extra_incomes'
   | 'receivables'
+  | 'receivable_payments'
   | 'plans'
   | 'plan_rows'
 
@@ -54,6 +55,7 @@ export async function fetchAllTables(): Promise<RawTables> {
     fetchAll('expenses'),
     fetchAll('extra_incomes'),
     fetchAll('receivables'),
+    fetchAll('receivable_payments'),
     fetchAll('plans'),
     fetchAll('plan_rows'),
   ])
@@ -67,6 +69,7 @@ export async function fetchAllTables(): Promise<RawTables> {
     expenses,
     extra_incomes,
     receivables,
+    receivable_payments,
     plans,
     plan_rows,
   ] = rest as [
@@ -78,6 +81,7 @@ export async function fetchAllTables(): Promise<RawTables> {
     RawTables['expenses'],
     RawTables['extra_incomes'],
     RawTables['receivables'],
+    RawTables['receivable_payments'],
     RawTables['plans'],
     RawTables['plan_rows'],
   ]
@@ -91,6 +95,7 @@ export async function fetchAllTables(): Promise<RawTables> {
     expenses,
     extra_incomes,
     receivables,
+    receivable_payments,
     plans,
     plan_rows,
     monthly_totals: unwrap(monthlyTotals),
