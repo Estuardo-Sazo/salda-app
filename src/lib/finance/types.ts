@@ -24,6 +24,10 @@ export interface DebtInput {
   seguroMensual: number | null
   saldoCancelacion?: number | null
   installments?: InstallmentInput[]
+  /** Interés fijo por mes sobre el monto original (en lugar de saldo × tasa / 12). */
+  interesFijoMensual?: number | null
+  /** Período (YYYY-MM-01) en que se paga todo el saldo de una vez, fuera del presupuesto mensual. */
+  vencimiento?: string | null
 }
 
 export interface PlanInput {
@@ -35,6 +39,8 @@ export interface PlanInput {
   fechaInicio: string
   ingresoMensual?: number
   gastosFijos?: number
+  /** Ingresos extra por período (aguinaldo, Bono 14): suman al flujo libre de ese mes. */
+  ingresosExtra?: Record<string, number>
   maxMeses?: number
 }
 

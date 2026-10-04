@@ -1,3 +1,4 @@
+import { summarizeExpenses, type ExpenseLike } from '@/lib/finance/expenses'
 import { addMonths, monthsBetween } from '@/lib/finance/period'
 import type { ActivePlan, DebtStatus, MonthlyBalance, MonthlyTotals } from '@/features/common/queries'
 
@@ -29,6 +30,12 @@ export interface DashboardModel {
   pagosMes: number
   flujoLibre: number | null
   comprasTarjeta: number
+  /** Detalle de la deuda nueva del mes (compras con tarjeta). */
+  compras: {
+    tasa: number | null
+    interesMes: number
+    items: { id: string; descripcion: string; monto: number; tarjeta: string }[]
+  }
   meta: { periodo: string; saldo: number; diferencia: number } | null
   metaInicio: string | null
   libre: { periodo: string; meses: number } | null
@@ -46,6 +53,8 @@ export interface DashboardInput {
   debts: DebtStatus[]
   plan: ActivePlan | null
   paidDebtIds: Set<string>
+  /** Gastos del período actual (para el detalle de compras con tarjeta). */
+  expenses?: (ExpenseLike & { id: string; descripcion: string })[]
 }
 
 /** Calcula los KPIs del dashboard a partir de las vistas (función pura, testeable). */
@@ -56,6 +65,7 @@ export function buildDashboard({
   debts,
   plan,
   paidDebtIds,
+  expenses = [],
 }: DashboardInput): DashboardModel {
   const byPeriod = new Map(totals.map((t) => [t.periodo, t]))
   // Si el mes actual no tiene datos todavía, se usa el último registrado.
@@ -72,8 +82,9 @@ export function buildDashboard({
 
   const activeDebts = debts.filter((d) => d.estado === 'activa')
   const [y, m] = periodo.split('-')
+  // Los pagos únicos van en su propia alerta; aquí solo las deudas con cuota mensual.
   const proximosPagos = activeDebts
-    .filter((d) => d.dia_pago != null)
+    .filter((d) => d.dia_pago != null && !d.pago_unico)
     .map<UpcomingPayment>((d) => ({
       debtId: d.debt_id,
       nombre: d.nombre,
@@ -103,6 +114,22 @@ export function buildDashboard({
     barrasMap.set(b.periodo, row)
   }
 
+  const nombres = new Map(debts.map((d) => [d.debt_id, d.nombre]))
+  const resumenGastos = summarizeExpenses(expenses, Object.fromEntries(debts.map((d) => [d.debt_id, d.tasa_anual])))
+  const compras = {
+    tasa: resumenGastos.tasaTarjeta,
+    interesMes: resumenGastos.interesMensualTarjeta,
+    items: expenses
+      .filter((e) => e.metodo === 'tarjeta')
+      .sort((a, b) => b.monto - a.monto)
+      .map((e) => ({
+        id: e.id,
+        descripcion: e.descripcion,
+        monto: e.monto,
+        tarjeta: (e.debt_id && nombres.get(e.debt_id)) || 'Tarjeta',
+      })),
+  }
+
   return {
     periodo: current?.periodo ?? periodo,
     deudaReal: current?.total_real ?? 0,
@@ -117,6 +144,7 @@ export function buildDashboard({
     pagosMes: current?.pagos ?? 0,
     flujoLibre: current?.ingreso_mensual != null ? current.flujo_libre : null,
     comprasTarjeta: current?.compras_tarjeta ?? 0,
+    compras,
     meta:
       current && metaActual != null
         ? { periodo: current.periodo, saldo: metaActual, diferencia: round2(current.total_real - metaActual) }

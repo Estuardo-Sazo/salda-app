@@ -116,9 +116,12 @@ export type Database = {
           fecha_base: string
           fecha_vencimiento: string | null
           id: string
+          interes_modo: string
           limite_credito: number | null
+          monto_original: number | null
           nombre: string
           notas: string | null
+          pago_unico: boolean
           prioridad: number | null
           saldo_base: number
           saldo_cancelacion: number | null
@@ -142,9 +145,12 @@ export type Database = {
           fecha_base: string
           fecha_vencimiento?: string | null
           id?: string
+          interes_modo?: string
           limite_credito?: number | null
+          monto_original?: number | null
           nombre: string
           notas?: string | null
+          pago_unico?: boolean
           prioridad?: number | null
           saldo_base: number
           saldo_cancelacion?: number | null
@@ -168,9 +174,12 @@ export type Database = {
           fecha_base?: string
           fecha_vencimiento?: string | null
           id?: string
+          interes_modo?: string
           limite_credito?: number | null
+          monto_original?: number | null
           nombre?: string
           notas?: string | null
+          pago_unico?: boolean
           prioridad?: number | null
           saldo_base?: number
           saldo_cancelacion?: number | null
@@ -243,6 +252,33 @@ export type Database = {
             referencedColumns: ['debt_id']
           },
         ]
+      }
+      extra_incomes: {
+        Row: {
+          concepto: string
+          created_at: string
+          id: string
+          monto: number
+          periodo: string
+          user_id: string
+        }
+        Insert: {
+          concepto: string
+          created_at?: string
+          id?: string
+          monto: number
+          periodo: string
+          user_id?: string
+        }
+        Update: {
+          concepto?: string
+          created_at?: string
+          id?: string
+          monto?: number
+          periodo?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       monthly_snapshots: {
         Row: {
@@ -540,16 +576,22 @@ export type Database = {
           entidad: string | null
           estado: string | null
           fecha_base: string | null
+          fecha_vencimiento: string | null
           interes_acumulado: number | null
+          interes_devengado: number | null
+          interes_modo: string | null
           limite_credito: number | null
+          monto_original: number | null
           nombre: string | null
           notas: string | null
           pagado_acumulado: number | null
+          pago_unico: boolean | null
           prioridad: number | null
           saldo_actual: number | null
           saldo_base: number | null
           saldo_cancelacion: number | null
           saldo_cancelacion_fecha: string | null
+          saldo_para_cancelar: number | null
           seguro_mensual: number | null
           tasa_anual: number | null
           tipo: Database['public']['Enums']['debt_type'] | null
@@ -581,6 +623,7 @@ export type Database = {
           gastos_fijos: number | null
           gastos_total: number | null
           ingreso_mensual: number | null
+          ingresos_extra: number | null
           interes_cargos: number | null
           pagos: number | null
           periodo: string | null
@@ -601,6 +644,10 @@ export type Database = {
     Functions: {
       current_period: { Args: never; Returns: string }
       debt_fuera_saldo: { Args: { p_debt_id: string }; Returns: number }
+      flat_balance_at: {
+        Args: { p_debt_id: string; p_periodo: string }
+        Returns: number
+      }
       import_initial_data: { Args: { payload: Json }; Returns: Json }
       refresh_snapshot: {
         Args: { p_debt_id: string; p_periodo: string }

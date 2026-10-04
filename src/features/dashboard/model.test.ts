@@ -16,6 +16,7 @@ const totals = (periodo: string, saldo: number, fuera = 0, extra: Partial<Monthl
   ingreso_mensual: 9000,
   gastos_fijos: 3050,
   flujo_libre: 5950,
+  ingresos_extra: 0,
   ...extra,
 })
 
@@ -74,5 +75,31 @@ describe('buildDashboard', () => {
     })
     expect(m.meta).toEqual({ periodo: '2026-11-01', saldo: 55400, diferencia: 200 })
     expect(m.comprasTarjeta).toBe(120)
+  })
+
+  it('detalla la deuda nueva con la tasa ponderada de las tarjetas usadas', () => {
+    const m = buildDashboard({
+      ...base,
+      periodo: '2026-10-01',
+      debts: [{ ...debt('tarjeta', 27, 2), tasa_anual: 0.48 }, debt('vehiculo', 5, 4)],
+      expenses: [
+        {
+          id: 'a',
+          descripcion: 'Streaming',
+          monto: 89,
+          categoria: 'Suscripción',
+          metodo: 'tarjeta',
+          debt_id: 'tarjeta',
+        },
+        { id: 'b', descripcion: 'Súper', monto: 300, categoria: 'Comida', metodo: 'tarjeta', debt_id: 'tarjeta' },
+        { id: 'c', descripcion: 'Almuerzo', monto: 45, categoria: 'Comida', metodo: 'efectivo', debt_id: null },
+      ],
+    })
+    expect(m.compras.tasa).toBe(0.48)
+    expect(m.compras.interesMes).toBeCloseTo((389 * 0.48) / 12, 2)
+    expect(m.compras.items.map((c) => [c.descripcion, c.tarjeta])).toEqual([
+      ['Súper', 'tarjeta'],
+      ['Streaming', 'tarjeta'],
+    ])
   })
 })

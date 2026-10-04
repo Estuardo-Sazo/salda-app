@@ -36,12 +36,15 @@ interface NavItem {
   label: string
   icon: LucideIcon
   end?: boolean
+  /** Solo en la barra lateral: la navegación inferior tiene 5 lugares fijos. */
+  desktopOnly?: boolean
 }
 
 const NAV: NavItem[] = [
   { to: '/', label: 'Inicio', icon: Home, end: true },
   { to: '/registrar', label: 'Registrar', icon: Plus },
   { to: '/deudas', label: 'Deudas', icon: CreditCard },
+  { to: '/gastos', label: 'Gastos', icon: Receipt, desktopOnly: true },
   { to: '/reportes', label: 'Reportes', icon: BarChart3 },
   { to: '/mas', label: 'Más', icon: MoreHorizontal },
 ]
@@ -190,7 +193,7 @@ export function AppLayout() {
         className="bg-background/90 pb-safe fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur lg:hidden"
       >
         <ul className="mx-auto grid h-16 max-w-md grid-cols-5">
-          {NAV.map(({ to, label, icon: Icon, end }) =>
+          {NAV.filter((n) => !n.desktopOnly).map(({ to, label, icon: Icon, end }) =>
             to === '/registrar' ? (
               <li key={to} className="flex items-start justify-center">
                 <button

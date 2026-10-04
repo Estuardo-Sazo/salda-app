@@ -25,6 +25,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useDebtPayments } from '@/features/debts/api'
 import { useDebtStatus, useMonthlyBalances, type DebtStatus } from '@/features/common/queries'
 import { addMonths } from '@/lib/finance/period'
+import { flatInterestPortion, flatPayoffIn, type FlatLoanTerms } from '@/lib/finance/flat-loan'
 import { analyzePayment, expectedBalanceAfter, previousBalance } from '@/lib/finance/payment'
 import { formatGTQ, formatPeriod, periodOf, todayISO } from '@/lib/format'
 import { parseAmount, toInput } from '@/lib/forms'
@@ -120,13 +121,6 @@ export function PaymentFormPage() {
   )
   const debt = activeDebts.find((d) => d.debt_id === debtId)
 
-  // Prellenar el monto con la cuota cuando llega la deuda desde la URL.
-  useEffect(() => {
-    if (debt && !pagoTouched && !form.getValues('pago_total') && debt.cuota_mensual != null) {
-      setValue('pago_total', toInput(debt.cuota_mensual))
-    }
-  }, [debt, form, setValue, pagoTouched])
-
   // Período automático = mes de la fecha, hasta que el usuario lo cambie.
   useEffect(() => {
     if (!periodoTouched && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) setValue('periodo', periodOf(fecha))
@@ -142,35 +136,75 @@ export function PaymentFormPage() {
     const previo = addMonths(periodo, -1)
     return balances.data.find((b) => b.debt_id === debt.debt_id && b.periodo === previo)?.saldo ?? debt.saldo_base
   }, [debt, fecha, periodo, balances.data])
-  const saldoAnterior =
-    saldoInicial != null && payments.data ? previousBalance(payments.data, saldoInicial, fecha, id) : null
+  // Préstamo de interés fijo: lo adeudado en el período incluye el cargo de cada mes.
+  const flatTerms = useMemo<FlatLoanTerms | null>(
+    () =>
+      debt?.interes_modo === 'monto_original' && debt.monto_original != null && debt.tasa_anual != null
+        ? {
+            montoOriginal: debt.monto_original,
+            tasaAnual: debt.tasa_anual,
+            fechaBase: debt.fecha_base,
+            saldoBase: debt.saldo_base,
+            fechaVencimiento: debt.fecha_vencimiento,
+          }
+        : null,
+    [debt],
+  )
+  const otrosPagos = useMemo(() => (payments.data ?? []).filter((p) => p.id !== id), [payments.data, id])
+  const saldoAnterior = !payments.data
+    ? null
+    : flatTerms
+      ? flatPayoffIn(flatTerms, otrosPagos, periodo)
+      : saldoInicial != null
+        ? previousBalance(payments.data, saldoInicial, fecha, id)
+        : null
+
+  // Monto sugerido: la cuota, o el total para cancelar si no hay cuota (pago único / interés fijo).
+  const montoSugerido = debt?.cuota_mensual ? debt.cuota_mensual : flatTerms ? saldoAnterior : debt?.cuota_mensual
+  useEffect(() => {
+    if (!pagoTouched && montoSugerido != null) setValue('pago_total', toInput(montoSugerido))
+  }, [montoSugerido, pagoTouched, setValue])
 
   const pago = parseAmount(pagoRaw)
   const saldoDespues = parseAmount(saldoRaw)
   const interes = parseAmount(interesRaw)
   const cargos = parseAmount(cargosRaw)
   const valid = (n: number | null): n is number => n != null && !Number.isNaN(n)
+  // Interés fijo: el interés del pago sale de las condiciones (no se estima).
+  const interesFijo =
+    flatTerms && saldoAnterior != null && valid(pago)
+      ? flatInterestPortion(
+          flatTerms,
+          otrosPagos.filter((p) => p.periodo < periodo),
+          saldoAnterior,
+          pago,
+        )
+      : null
   const analysis =
     saldoAnterior != null && valid(pago) && valid(saldoDespues)
       ? analyzePayment({
           saldoAnterior,
           pagoTotal: pago,
           saldoDespues,
-          interes: valid(interes) ? interes : null,
+          interes: valid(interes) ? interes : interesFijo,
           cargos: valid(cargos) ? cargos : null,
         })
       : null
   const sugerido =
-    debt?.tipo === 'prestamo' && saldoAnterior != null && valid(pago)
-      ? expectedBalanceAfter(saldoAnterior, debt.tasa_anual, pago)
-      : null
+    saldoAnterior == null || !valid(pago)
+      ? null
+      : flatTerms
+        ? Math.max(0, Math.round((saldoAnterior - pago) * 100) / 100)
+        : debt?.tipo === 'prestamo'
+          ? expectedBalanceAfter(saldoAnterior, debt.tasa_anual, pago)
+          : null
 
   const periodoBase = /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? periodOf(fecha) : periodOf(todayISO())
   const periodos = [-1, 0, 1].map((n) => addMonths(periodoBase, n))
 
   const selectDebt = (d: DebtStatus) => {
     setValue('debt_id', d.debt_id, { shouldValidate: true })
-    if (!pagoTouched) setValue('pago_total', toInput(d.cuota_mensual))
+    if (!pagoTouched) setValue('pago_total', d.cuota_mensual ? toInput(d.cuota_mensual) : '')
   }
 
   const onSubmit = form.handleSubmit(async (values) => {
@@ -179,7 +213,7 @@ export function PaymentFormPage() {
       saldoAnterior,
       pagoTotal: values.pago_total,
       saldoDespues: values.saldo_despues,
-      interes: values.interes,
+      interes: values.interes ?? interesFijo,
       cargos: values.cargos,
     })
     try {
@@ -289,7 +323,13 @@ export function PaymentFormPage() {
         id="saldo_despues"
         label="Saldo después del pago"
         error={errors.saldo_despues?.message}
-        hint={saldoAnterior != null ? `Saldo anterior ${formatGTQ(saldoAnterior)}` : undefined}
+        hint={
+          saldoAnterior == null
+            ? undefined
+            : flatTerms
+              ? `Para cancelarlo en ${formatPeriod(periodo)}: ${formatGTQ(saldoAnterior)} (incluye el interés fijo)`
+              : `Saldo anterior ${formatGTQ(saldoAnterior)}`
+        }
       >
         <MoneyInput
           id="saldo_despues"
@@ -304,7 +344,7 @@ export function PaymentFormPage() {
             className="text-primary inline-flex w-fit items-center gap-1 text-xs font-medium hover:underline"
           >
             <Sparkles className="size-3.5" aria-hidden />
-            Usar estimado {formatGTQ(sugerido)}
+            {flatTerms ? `Usar ${formatGTQ(sugerido)}` : `Usar estimado ${formatGTQ(sugerido)}`}
           </button>
         )}
       </Field>

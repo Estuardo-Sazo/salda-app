@@ -25,6 +25,7 @@ const normalizeDebt = (d: Debt): Debt => ({
   limite_credito: numOrNull(d.limite_credito),
   saldo_base: num(d.saldo_base),
   saldo_cancelacion: numOrNull(d.saldo_cancelacion),
+  monto_original: numOrNull(d.monto_original),
 })
 
 export const normalizePayment = (p: Payment): Payment => ({

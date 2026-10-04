@@ -66,6 +66,7 @@ export type MonthlyTotals = WithRequired<
   | 'gastos_total'
   | 'gastos_fijos'
   | 'flujo_libre'
+  | 'ingresos_extra'
 >
 
 export type MonthlyBalance = WithRequired<
@@ -123,6 +124,9 @@ export function useDebtStatus() {
         interes_acumulado: num(r.interes_acumulado),
         capital_acumulado: num(r.capital_acumulado),
         pagado_acumulado: num(r.pagado_acumulado),
+        monto_original: numOrNull(r.monto_original),
+        interes_devengado: num(r.interes_devengado),
+        saldo_para_cancelar: numOrNull(r.saldo_para_cancelar),
       }))
     },
   })
@@ -148,6 +152,7 @@ export function useMonthlyTotals() {
         ingreso_mensual: numOrNull(r.ingreso_mensual),
         gastos_fijos: num(r.gastos_fijos),
         flujo_libre: num(r.flujo_libre),
+        ingresos_extra: num(r.ingresos_extra),
       }))
     },
   })

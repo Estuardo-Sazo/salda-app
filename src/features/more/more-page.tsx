@@ -1,6 +1,7 @@
 import {
   ChevronRight,
   Download,
+  Gift,
   HandCoins,
   LineChart,
   ListChecks,
@@ -8,6 +9,7 @@ import {
   LogOut,
   SlidersHorizontal,
   Table2,
+  Receipt,
   Trash2,
   type LucideIcon,
 } from 'lucide-react'
@@ -33,6 +35,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProfile, useResetData } from '@/features/common/queries'
 
 const LINKS: { to: string; label: string; text: string; icon: LucideIcon }[] = [
+  { to: '/gastos', label: 'Gastos', text: 'Por mes, categoría y método', icon: Receipt },
+  { to: '/mas/ingresos-extra', label: 'Ingresos extra', text: 'Aguinaldo, Bono 14 y otros', icon: Gift },
   { to: '/saldos', label: 'Saldos mensuales', text: 'Tabla período × deuda', icon: Table2 },
   { to: '/plan', label: 'Plan vs real', text: 'Meta mes a mes y comparación', icon: ListChecks },
   { to: '/simulador', label: 'Simulador', text: 'Abonos extra y consolidación', icon: SlidersHorizontal },

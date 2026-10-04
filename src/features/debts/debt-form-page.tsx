@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { todayISO } from '@/lib/format'
-import { toInput } from '@/lib/forms'
+import { formatGTQ, todayISO } from '@/lib/format'
+import { parseAmount, toInput } from '@/lib/forms'
 import { useDebt, useSaveDebt, type Debt } from './api'
 import { debtSchema, type DebtFormInput, type DebtFormOutput } from './schema'
 
@@ -38,6 +40,11 @@ function toFormValues(d?: Debt): DebtFormInput {
     cuota_actual: d?.cuota_actual?.toString() ?? '',
     fecha_vencimiento: d?.fecha_vencimiento ?? '',
     notas: d?.notas ?? '',
+    interes_modo: d?.interes_modo === 'monto_original' ? 'monto_original' : 'saldo',
+    monto_original: toInput(d?.monto_original),
+    tasa_mensual:
+      d?.interes_modo === 'monto_original' ? toInput(d.tasa_anual != null ? d.tasa_anual / 12 : null, 100) : '',
+    pago_unico: d?.pago_unico ?? false,
   }
 }
 
@@ -69,14 +76,29 @@ export function DebtFormPage() {
   })
   const { register, setValue, control, formState } = form
   const e = formState.errors
-  const tipo = useWatch({ control, name: 'tipo' })
+  const [tipo, interesModo, pagoUnico, montoOriginalRaw, tasaMensualRaw, fechaVenc] = useWatch({
+    control,
+    name: ['tipo', 'interes_modo', 'pago_unico', 'monto_original', 'tasa_mensual', 'fecha_vencimiento'],
+  })
+  const fijo = tipo === 'prestamo' && interesModo === 'monto_original'
+  const montoOriginal = parseAmount(montoOriginalRaw)
+  const tasaMensual = parseAmount(tasaMensualRaw)
+  const cargoMensual =
+    fijo && montoOriginal && tasaMensual && !Number.isNaN(montoOriginal) && !Number.isNaN(tasaMensual)
+      ? Math.round(montoOriginal * tasaMensual) / 100
+      : null
 
   const onSubmit = form.handleSubmit(async (values) => {
     // Los campos que no aplican al tipo se guardan vacíos.
     const clean =
       values.tipo === 'tarjeta'
         ? { ...values, cuotas_totales: null, cuota_actual: null, fecha_vencimiento: null }
-        : { ...values, dia_corte: null, limite_credito: null }
+        : {
+            ...values,
+            dia_corte: null,
+            limite_credito: null,
+            ...(values.pago_unico ? { cuota_mensual: 0, cuotas_totales: null, cuota_actual: null } : {}),
+          }
     try {
       const debt = await save.mutateAsync({ id, values: clean })
       toast.success(id ? 'Deuda actualizada' : `${debt.nombre} agregada`)
@@ -90,7 +112,7 @@ export function DebtFormPage() {
   if (!loaded) return <Skeleton className="h-96 rounded-xl" />
 
   const money = (
-    name: 'saldo_base' | 'cuota_mensual' | 'seguro_mensual' | 'limite_credito' | 'saldo_cancelacion',
+    name: 'saldo_base' | 'cuota_mensual' | 'seguro_mensual' | 'limite_credito' | 'saldo_cancelacion' | 'monto_original',
     label: string,
     hint?: string,
   ) => (
@@ -99,7 +121,14 @@ export function DebtFormPage() {
     </Field>
   )
   const text = (
-    name: 'tasa_anual' | 'tasa_efectiva_anual' | 'dia_corte' | 'dia_pago' | 'cuotas_totales' | 'cuota_actual',
+    name:
+      | 'tasa_anual'
+      | 'tasa_efectiva_anual'
+      | 'tasa_mensual'
+      | 'dia_corte'
+      | 'dia_pago'
+      | 'cuotas_totales'
+      | 'cuota_actual',
     label: string,
     hint?: string,
     suffix?: string,
@@ -166,9 +195,53 @@ export function DebtFormPage() {
       </Section>
 
       <Section title="Condiciones" description="Dejá vacío lo que no sepás: se marca como PENDIENTE DE CONFIRMAR.">
-        {text('tasa_anual', 'Tasa anual nominal', PENDIENTE_HINT, '%')}
-        {text('tasa_efectiva_anual', 'Tasa efectiva anual (TEA)', undefined, '%')}
-        {money('cuota_mensual', 'Cuota mensual planeada')}
+        {tipo === 'prestamo' && (
+          <div className="grid gap-2 sm:col-span-2">
+            <span className="text-sm font-medium">¿Cómo cobra el interés?</span>
+            <div role="group" aria-label="Cómo cobra el interés" className="grid grid-cols-2 gap-2">
+              <ChoiceChip selected={!fijo} onClick={() => setValue('interes_modo', 'saldo')}>
+                <span className="block font-medium">Sobre el saldo</span>
+                <span className="text-muted-foreground block text-xs">Bancos y cooperativas</span>
+              </ChoiceChip>
+              <ChoiceChip selected={fijo} onClick={() => setValue('interes_modo', 'monto_original')}>
+                <span className="block font-medium">Fijo sobre el monto</span>
+                <span className="text-muted-foreground block text-xs">Ej. 7 % mensual del total prestado</span>
+              </ChoiceChip>
+            </div>
+          </div>
+        )}
+        {fijo ? (
+          <>
+            {money('monto_original', 'Monto que te prestaron')}
+            {text(
+              'tasa_mensual',
+              'Interés mensual',
+              cargoMensual != null ? `= ${formatGTQ(cargoMensual)} por mes` : 'Sobre el monto original',
+              '%',
+            )}
+          </>
+        ) : (
+          <>
+            {text('tasa_anual', 'Tasa anual nominal', PENDIENTE_HINT, '%')}
+            {text('tasa_efectiva_anual', 'Tasa efectiva anual (TEA)', undefined, '%')}
+          </>
+        )}
+        {tipo === 'prestamo' && (
+          <div className="flex items-start justify-between gap-4 rounded-xl border p-3 sm:col-span-2">
+            <Label htmlFor="pago_unico" className="flex-col items-start gap-0.5 font-normal">
+              <span className="font-medium">Se paga todo al vencimiento</span>
+              <span className="text-muted-foreground text-xs">
+                Sin cuotas mensuales: capital e intereses en un solo pago.
+              </span>
+            </Label>
+            <Switch
+              id="pago_unico"
+              checked={pagoUnico}
+              onCheckedChange={(v) => setValue('pago_unico', v, { shouldValidate: true })}
+            />
+          </div>
+        )}
+        {!(tipo === 'prestamo' && pagoUnico) && money('cuota_mensual', 'Cuota mensual planeada')}
         {money('seguro_mensual', 'Seguro mensual', PENDIENTE_HINT)}
         {text('dia_pago', 'Día de pago', 'Del 1 al 31')}
         {tipo === 'tarjeta' ? (
@@ -178,9 +251,13 @@ export function DebtFormPage() {
           </>
         ) : (
           <>
-            {text('cuotas_totales', 'Cuotas totales')}
-            {text('cuota_actual', 'Cuota actual')}
-            {date('fecha_vencimiento', 'Fecha de vencimiento')}
+            {!pagoUnico && text('cuotas_totales', 'Cuotas totales')}
+            {!pagoUnico && text('cuota_actual', 'Cuota actual')}
+            {date(
+              'fecha_vencimiento',
+              pagoUnico ? 'Fecha del pago total' : 'Fecha de vencimiento',
+              pagoUnico && fijo && fechaVenc ? 'El interés fijo se suma cada mes hasta esta fecha' : undefined,
+            )}
           </>
         )}
       </Section>

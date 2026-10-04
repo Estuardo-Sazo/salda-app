@@ -10,6 +10,7 @@ import {
   Flag,
   History,
   Percent,
+  PiggyBank,
   ShieldCheck,
   Wallet,
   type LucideIcon,
@@ -27,6 +28,10 @@ import {
   usePeriodPayments,
 } from '@/features/common/queries'
 import { currentPeriod, formatDate, formatGTQ, formatPercent, formatPeriod, formatPeriodLong } from '@/lib/format'
+import { usePeriodExpenses } from '@/features/expenses/api'
+import { useExtraIncomes } from '@/features/income/api'
+import { Button } from '@/components/ui/button'
+import { bulletAlerts, type BulletAlert } from './bullet'
 import { cn } from '@/lib/utils'
 import { BalancesByDebtChart, RealVsGoalChart } from './charts'
 import { buildDashboard, type DashboardModel } from './model'
@@ -136,17 +141,116 @@ function Hero({ model }: { model: DashboardModel }) {
   )
 }
 
+function BulletAlertCard({ alert }: { alert: BulletAlert }) {
+  const cubierto = alert.faltante === 0
+  return (
+    <section
+      aria-label={`Pago único de ${alert.nombre}`}
+      className="border-warning/60 bg-warning-soft/70 grid gap-3 rounded-2xl border p-4 text-sm"
+    >
+      <div className="flex items-start gap-3">
+        <CalendarClock className="text-warning-foreground mt-0.5 size-5 shrink-0" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold">
+            {alert.mesesFaltan === 0 ? 'Este mes' : `En ${formatPeriodLong(alert.periodo)}`} vence {alert.nombre}
+          </p>
+          <p className="text-muted-foreground">
+            Pago único de <Money value={alert.monto} className="text-foreground font-semibold" />
+            {alert.ingresosExtra > 0 && (
+              <>
+                {' '}
+                · ingresos extra de ese mes{' '}
+                <Money value={alert.ingresosExtra} className="text-foreground font-medium" />
+              </>
+            )}
+          </p>
+        </div>
+      </div>
+      <ul className="grid gap-1.5 pl-8">
+        <li className="flex items-center gap-2">
+          {cubierto ? (
+            <CheckCircle2 className="text-success size-4 shrink-0" aria-hidden />
+          ) : (
+            <AlertOctagon className="text-destructive size-4 shrink-0" aria-hidden />
+          )}
+          <span>
+            {cubierto ? (
+              'Los ingresos extra de ese mes lo cubren.'
+            ) : (
+              <>
+                Faltan <Money value={alert.faltante} className="font-semibold" />
+                {alert.mesesFaltan > 0 && (
+                  <>
+                    : apartá ≈ <Money value={alert.apartarPorMes} className="font-semibold" /> por mes
+                  </>
+                )}
+                .
+              </>
+            )}
+          </span>
+        </li>
+        {alert.cancelarHoy && alert.cancelarHoy.ahorro > 0 && (
+          <li className="flex items-center gap-2">
+            <PiggyBank className="text-success size-4 shrink-0" aria-hidden />
+            <span>
+              Si lo cancelás este mes pagás <Money value={alert.cancelarHoy.monto} className="font-semibold" /> y te
+              ahorrás <Money value={alert.cancelarHoy.ahorro} className="text-success font-semibold" />.
+            </span>
+          </li>
+        )}
+      </ul>
+      <div className="flex flex-wrap gap-2 pl-8">
+        <Button size="sm" variant="outline" asChild>
+          <Link to={`/deudas/${alert.debtId}`}>Ver préstamo</Link>
+        </Button>
+        {alert.ingresosExtra === 0 && (
+          <Button size="sm" variant="ghost" asChild>
+            <Link to="/mas/ingresos-extra">Registrar aguinaldo</Link>
+          </Button>
+        )}
+      </div>
+    </section>
+  )
+}
+
 function CardPurchasesAlert({ model }: { model: DashboardModel }) {
   if (model.comprasTarjeta > 0) {
     return (
       <div role="alert" className="border-destructive/30 bg-danger-soft flex items-start gap-3 rounded-2xl border p-4">
         <AlertOctagon className="text-destructive mt-0.5 size-5 shrink-0" aria-hidden />
-        <div className="text-sm">
+        <div className="min-w-0 flex-1 text-sm">
           <p className="text-destructive font-semibold">Deuda nueva este mes</p>
           <p className="text-muted-foreground">
             Agregaste <span className="text-foreground tabular font-medium">{formatGTQ(model.comprasTarjeta)}</span> de
-            deuda nueva al ~60 % con compras con tarjeta.
+            deuda nueva con tarjeta
+            {model.compras.tasa != null && (
+              <>
+                {' '}
+                al ~{formatPercent(model.compras.tasa)} anual: ≈{' '}
+                <span className="text-foreground font-medium">{formatGTQ(model.compras.interesMes)}</span> de interés
+                por mes si no la pagás completa
+              </>
+            )}
+            .
           </p>
+          {model.compras.items.length > 0 && (
+            <ul className="mt-2 grid gap-1">
+              {model.compras.items.slice(0, 3).map((c) => (
+                <li key={c.id} className="flex min-w-0 justify-between gap-3">
+                  <span className="min-w-0 truncate">
+                    {c.descripcion} <span className="text-muted-foreground">· {c.tarjeta}</span>
+                  </span>
+                  <Money value={c.monto} className="text-destructive font-medium" />
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link
+            to="/gastos"
+            className="text-destructive mt-2 inline-block font-medium underline-offset-4 hover:underline"
+          >
+            {model.compras.items.length > 3 ? `Ver las ${model.compras.items.length} compras` : 'Ver gastos del mes'}
+          </Link>
         </div>
       </div>
     )
@@ -156,7 +260,10 @@ function CardPurchasesAlert({ model }: { model: DashboardModel }) {
       <ShieldCheck className="text-success size-5 shrink-0" aria-hidden />
       <p>
         <span className="font-medium">Sin compras con tarjeta</span>{' '}
-        <span className="text-muted-foreground">en {formatPeriodLong(model.periodo)}. ¡Seguí así!</span>
+        <span className="text-muted-foreground">en {formatPeriodLong(model.periodo)}. ¡Seguí así!</span>{' '}
+        <Link to="/gastos" className="text-primary font-medium underline-offset-4 hover:underline">
+          Ver gastos
+        </Link>
       </p>
     </div>
   )
@@ -199,10 +306,10 @@ function UpcomingPayments({ model }: { model: DashboardModel }) {
   )
 }
 
-export function DashboardView({ model }: { model: DashboardModel }) {
+export function DashboardView({ model, alerts = [] }: { model: DashboardModel; alerts?: BulletAlert[] }) {
   const inicio = model.periodoInicio ? formatPeriod(model.periodoInicio) : 'el inicio'
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4">
       <Hero model={model} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -241,9 +348,13 @@ export function DashboardView({ model }: { model: DashboardModel }) {
         </StatTile>
       </div>
 
+      {alerts.map((a) => (
+        <BulletAlertCard key={a.debtId} alert={a} />
+      ))}
+
       <CardPurchasesAlert model={model} />
 
-      <div className="grid gap-4 lg:grid-cols-5">
+      <div className="grid gap-4 lg:grid-cols-5 [&>*]:min-w-0">
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Deuda real vs meta</CardTitle>
@@ -292,7 +403,9 @@ export function DashboardPage() {
   const debts = useDebtStatus()
   const plan = useActivePlan()
   const payments = usePeriodPayments(periodo)
-  const queries = [totals, balances, debts, plan, payments]
+  const expenses = usePeriodExpenses(periodo)
+  const extras = useExtraIncomes()
+  const queries = [totals, balances, debts, plan, payments, expenses]
 
   const model = useMemo(() => {
     if (!totals.data || !balances.data || !debts.data || plan.data === undefined || !payments.data) return null
@@ -303,12 +416,14 @@ export function DashboardPage() {
       debts: debts.data,
       plan: plan.data,
       paidDebtIds: new Set(payments.data.map((p) => p.debt_id)),
+      expenses: expenses.data,
     })
-  }, [periodo, totals.data, balances.data, debts.data, plan.data, payments.data])
+  }, [periodo, totals.data, balances.data, debts.data, plan.data, payments.data, expenses.data])
 
   const error = queries.find((q) => q.error)?.error
   if (error) return <ErrorState error={error} />
   if (!model || !debts.data) return <DashboardSkeleton />
   if (debts.data.length === 0) return <Navigate to="/bienvenida" replace />
-  return <DashboardView model={model} />
+  const alerts = bulletAlerts(debts.data, extras.data ?? [], periodo)
+  return <DashboardView model={model} alerts={alerts} />
 }

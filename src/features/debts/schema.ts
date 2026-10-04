@@ -29,10 +29,34 @@ export const debtSchema = z
     cuota_actual: optionalIntField(0, 600),
     fecha_vencimiento: optionalDateField(),
     notas: optionalText(),
+    interes_modo: z.enum(['saldo', 'monto_original']),
+    monto_original: optionalMoneyField(),
+    /** Solo en la UI para interés fijo: "7" = 7 % mensual → tasa_anual 0.84. */
+    tasa_mensual: optionalPercentField(),
+    pago_unico: z.boolean(),
   })
-  .refine((d) => d.cuota_actual == null || d.cuotas_totales == null || d.cuota_actual <= d.cuotas_totales, {
-    path: ['cuota_actual'],
-    message: 'No puede ser mayor que el total de cuotas',
+  .superRefine((d, ctx) => {
+    if (d.cuota_actual != null && d.cuotas_totales != null && d.cuota_actual > d.cuotas_totales) {
+      ctx.addIssue({ code: 'custom', path: ['cuota_actual'], message: 'No puede ser mayor que el total de cuotas' })
+    }
+    if (d.tipo === 'prestamo' && d.interes_modo === 'monto_original') {
+      if (d.monto_original == null) {
+        ctx.addIssue({ code: 'custom', path: ['monto_original'], message: 'Ingresá el monto que te prestaron' })
+      }
+      if (d.tasa_mensual == null) {
+        ctx.addIssue({ code: 'custom', path: ['tasa_mensual'], message: 'Ingresá el interés mensual' })
+      }
+    }
+    if (d.tipo === 'prestamo' && d.pago_unico && d.fecha_vencimiento == null) {
+      ctx.addIssue({ code: 'custom', path: ['fecha_vencimiento'], message: '¿Cuándo se paga todo?' })
+    }
+  })
+  .transform(({ tasa_mensual, ...d }) => {
+    if (d.tipo === 'tarjeta') return { ...d, interes_modo: 'saldo' as const, monto_original: null, pago_unico: false }
+    if (d.interes_modo === 'monto_original') {
+      return { ...d, tasa_anual: Math.round((tasa_mensual ?? 0) * 12 * 10000) / 10000, tasa_efectiva_anual: null }
+    }
+    return { ...d, monto_original: null }
   })
 
 export type DebtFormInput = z.input<typeof debtSchema>

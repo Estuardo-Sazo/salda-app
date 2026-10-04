@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,10 +38,20 @@ import {
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDebtStatus } from '@/features/common/queries'
-import { formatDate, formatGTQ, formatGTQCompact, formatPercent, formatPeriod } from '@/lib/format'
+import { flatMonthlyCharge, flatPayoffIn } from '@/lib/finance/flat-loan'
+import {
+  currentPeriod,
+  formatDate,
+  formatGTQ,
+  formatGTQCompact,
+  formatPercent,
+  formatPeriod,
+  periodOf,
+} from '@/lib/format'
 import { TIPO_LABEL } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useDebt, useDebtPayments, useDeleteDebt, useInstallments, useSetDebtClosed, type Payment } from './api'
+import { useDebtExpenses, type Expense } from '@/features/expenses/api'
 import { InstallmentsCard } from './installments-card'
 
 function Stat({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
@@ -126,6 +136,61 @@ function PaymentsChart({ payments }: { payments: Payment[] }) {
   )
 }
 
+/** Compras con esta tarjeta: deuda nueva desde el último pago registrado. */
+function CardPurchases({ expenses, desde, debtId }: { expenses: Expense[]; desde: string | null; debtId: string }) {
+  const nuevas = desde ? expenses.filter((e) => e.fecha > desde) : expenses
+  const total = nuevas.reduce((acc, e) => acc + Math.round(e.monto * 100), 0) / 100
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Compras con esta tarjeta</CardTitle>
+        <CardDescription>
+          {total > 0 ? (
+            <>
+              <Money value={total} className="text-destructive font-medium" /> de deuda nueva
+              {desde ? ` desde el último pago (${formatDate(desde)})` : ''}
+            </>
+          ) : (
+            'Sin compras nuevas desde el último pago'
+          )}
+        </CardDescription>
+        <CardAction>
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/registrar/gasto?volver=/deudas/${debtId}`}>
+              <Plus /> Compra
+            </Link>
+          </Button>
+        </CardAction>
+      </CardHeader>
+      {expenses.length > 0 && (
+        <CardContent>
+          <ul className="divide-y">
+            {expenses.slice(0, 5).map((e) => (
+              <li key={e.id}>
+                <Link
+                  to={`/gastos/${e.id}/editar?volver=/deudas/${debtId}`}
+                  className="hover:bg-accent/50 -mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-sm transition"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate">{e.descripcion}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {formatDate(e.fecha)} · {e.categoria}
+                    </span>
+                  </span>
+                  <Money
+                    value={e.monto}
+                    className={cn(desde && e.fecha <= desde ? 'text-muted-foreground' : 'text-destructive')}
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      )}
+    </Card>
+  )
+}
+
 function PaymentsList({ payments, debtId }: { payments: Payment[]; debtId: string }) {
   return (
     <ul className="divide-y">
@@ -164,6 +229,7 @@ export function DebtDetailPage() {
   const statuses = useDebtStatus()
   const payments = useDebtPayments(id)
   const installments = useInstallments(id)
+  const expenses = useDebtExpenses(id)
   const setClosed = useSetDebtClosed()
   const remove = useDeleteDebt()
   const [confirm, setConfirm] = useState<'close' | 'delete' | null>(null)
@@ -184,6 +250,25 @@ export function DebtDetailPage() {
   const d = debt.data
   const Icon = d.tipo === 'tarjeta' ? CreditCard : Landmark
   const activa = status.estado === 'activa'
+  const flat = d.interes_modo === 'monto_original' && d.monto_original != null && d.tasa_anual != null
+  const flatInfo = (() => {
+    if (!flat || !activa) return null
+    const terms = {
+      montoOriginal: d.monto_original!,
+      tasaAnual: d.tasa_anual!,
+      fechaBase: d.fecha_base,
+      saldoBase: d.saldo_base,
+      fechaVencimiento: d.fecha_vencimiento,
+    }
+    const hoy = currentPeriod()
+    const venc = d.fecha_vencimiento ? periodOf(d.fecha_vencimiento) : null
+    return {
+      cargo: flatMonthlyCharge(terms),
+      cancelarHoy: flatPayoffIn(terms, payments.data, hoy),
+      venc,
+      alVencimiento: venc && venc >= hoy ? flatPayoffIn(terms, payments.data, venc) : null,
+    }
+  })()
   const progreso =
     d.saldo_base > 0 ? Math.min(100, Math.max(0, ((d.saldo_base - status.saldo_actual) / d.saldo_base) * 100)) : 0
 
@@ -303,7 +388,35 @@ export function DebtDetailPage() {
         </dl>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {flatInfo && (
+        <section className="border-warning/60 bg-warning-soft/60 grid gap-3 rounded-2xl border p-4 text-sm sm:grid-cols-3">
+          <div>
+            <p className="text-muted-foreground text-xs">Interés fijo por mes</p>
+            <p className="tabular text-lg font-semibold">{formatGTQ(flatInfo.cargo)}</p>
+            <p className="text-muted-foreground text-xs">Se suma aunque no pagues nada</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground text-xs">Para cancelarlo este mes</p>
+            <p className="tabular text-lg font-semibold">{formatGTQ(flatInfo.cancelarHoy)}</p>
+            <p className="text-muted-foreground text-xs">
+              Cada mes que lo adelantes te ahorrás {formatGTQ(flatInfo.cargo)}
+            </p>
+          </div>
+          {flatInfo.alVencimiento != null && flatInfo.venc && (
+            <div>
+              <p className="text-muted-foreground text-xs">Si lo pagás en {formatPeriod(flatInfo.venc)}</p>
+              <p className="tabular text-destructive text-lg font-semibold">{formatGTQ(flatInfo.alVencimiento)}</p>
+              <p className="text-muted-foreground text-xs">
+                {flatInfo.alVencimiento > flatInfo.cancelarHoy
+                  ? `${formatGTQ(flatInfo.alVencimiento - flatInfo.cancelarHoy)} más que cancelarlo hoy`
+                  : 'Vence este mes'}
+              </p>
+            </div>
+          )}
+        </section>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
         <Card>
           <CardHeader>
             <CardTitle>Pagos</CardTitle>
@@ -331,6 +444,10 @@ export function DebtDetailPage() {
         </Card>
 
         <div className="grid content-start gap-4">
+          {d.tipo === 'tarjeta' && expenses.data && (
+            <CardPurchases expenses={expenses.data} desde={status.ultimo_pago} debtId={id} />
+          )}
+
           {(d.tipo === 'tarjeta' || installments.data.length > 0) && (
             <InstallmentsCard debtId={id} installments={installments.data} />
           )}
@@ -341,15 +458,32 @@ export function DebtDetailPage() {
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-                <Stat label="Tasa anual">
-                  <OrPending value={d.tasa_anual}>{formatPercent(d.tasa_anual)}</OrPending>
-                </Stat>
-                <Stat label="TEA">{d.tasa_efectiva_anual != null ? formatPercent(d.tasa_efectiva_anual) : '—'}</Stat>
-                <Stat label="Cuota mensual">
-                  <OrPending value={d.cuota_mensual}>
-                    <Money value={d.cuota_mensual} />
-                  </OrPending>
-                </Stat>
+                {flat ? (
+                  <>
+                    <Stat label="Interés fijo">{formatPercent((d.tasa_anual ?? 0) / 12)} mensual</Stat>
+                    <Stat label="Sobre el monto">
+                      <Money value={d.monto_original} />
+                    </Stat>
+                  </>
+                ) : (
+                  <>
+                    <Stat label="Tasa anual">
+                      <OrPending value={d.tasa_anual}>{formatPercent(d.tasa_anual)}</OrPending>
+                    </Stat>
+                    <Stat label="TEA">
+                      {d.tasa_efectiva_anual != null ? formatPercent(d.tasa_efectiva_anual) : '—'}
+                    </Stat>
+                  </>
+                )}
+                {d.pago_unico ? (
+                  <Stat label="Forma de pago">Pago único</Stat>
+                ) : (
+                  <Stat label="Cuota mensual">
+                    <OrPending value={d.cuota_mensual}>
+                      <Money value={d.cuota_mensual} />
+                    </OrPending>
+                  </Stat>
+                )}
                 <Stat label="Seguro">
                   <OrPending value={d.seguro_mensual}>
                     <Money value={d.seguro_mensual} />
@@ -363,10 +497,12 @@ export function DebtDetailPage() {
                   </>
                 ) : (
                   <>
-                    <Stat label="Cuotas">
-                      {d.cuotas_totales != null ? `${d.cuota_actual ?? '?'} de ${d.cuotas_totales}` : '—'}
-                    </Stat>
-                    <Stat label="Vence">{formatDate(d.fecha_vencimiento)}</Stat>
+                    {!d.pago_unico && (
+                      <Stat label="Cuotas">
+                        {d.cuotas_totales != null ? `${d.cuota_actual ?? '?'} de ${d.cuotas_totales}` : '—'}
+                      </Stat>
+                    )}
+                    <Stat label={d.pago_unico ? 'Se paga todo el' : 'Vence'}>{formatDate(d.fecha_vencimiento)}</Stat>
                   </>
                 )}
               </dl>

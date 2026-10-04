@@ -174,6 +174,39 @@ describe('projectPlan', () => {
   })
 })
 
+describe('préstamo de interés fijo con pago único', () => {
+  // Ficticio: Q5,000 al 5 % mensual sobre el monto original (Q250/mes), se paga todo en el mes 3.
+  const fijo = loan('fijo', 5250, 0.6, 0, { interesFijoMensual: 250, vencimiento: '2027-01-01' })
+
+  it('suma el cargo fijo cada mes y paga todo al vencimiento, fuera del presupuesto', () => {
+    const r = projectPlan(plan([fijo], { presupuestoDeudas: 0 }))
+    expect(r.meses.map((m) => m.deudas.fijo!.saldo)).toEqual([5500, 5750, 0])
+    expect(r.meses[2]!.deudas.fijo).toMatchObject({ pago: 6000, interes: 250 })
+    expect(r.totalInteresCargos).toBe(750)
+    expect(r.liquidaciones.fijo).toEqual({ mes: 3, periodo: '2027-01-01' })
+    expect(r.supuestos.join(' ')).toMatch(/interés fijo de Q250\.00.*ene 2027/)
+  })
+
+  it('avisa si el flujo libre no alcanza el mes del vencimiento y suma los ingresos extra', () => {
+    const sinExtra = projectPlan(plan([fijo], { presupuestoDeudas: 0 }))
+    expect(sinExtra.meses[2]!.flujoLibre).toBe(3000 - 6000)
+    expect(sinExtra.advertencias.join(' ')).toMatch(/En ene 2027 vence fijo \(Q6000\.00\).*−Q3000\.00/)
+
+    const conExtra = projectPlan(plan([fijo], { presupuestoDeudas: 0, ingresosExtra: { '2027-01': 3500 } }))
+    expect(conExtra.meses[2]!.flujoLibre).toBe(500)
+    expect(conExtra.advertencias).toHaveLength(0)
+  })
+
+  it('con avalancha recibe el sobrante primero (mayor tasa) y se cancela antes', () => {
+    const largo = { ...fijo, vencimiento: '2027-04-01' } // mes 6
+    const r = projectPlan(plan([largo, loan('barato', 3000, 0.12, 200)], { presupuestoDeudas: 2000 }))
+    expect(r.meses[0]!.deudas.fijo!.pago).toBe(1800)
+    // 5500−1800 → 3700; 3950−1800 → 2150; 2400−1800 → 600; 850 → 0: se cancela en el mes 4, no en el 6.
+    expect(r.liquidaciones.fijo!.mes).toBe(4)
+    expect(r.meses.slice(0, 4).reduce((a, m) => a + m.deudas.fijo!.interes, 0)).toBe(1000)
+  })
+})
+
 describe('consolidación', () => {
   const base = plan([
     card('x', 3000, 0.6, 300, {

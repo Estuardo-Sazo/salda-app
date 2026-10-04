@@ -75,14 +75,22 @@ function DebtCard({ debt }: { debt: DebtStatus }) {
         )}
 
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
-          <Field label="Tasa anual">
-            <OrPending value={debt.tasa_anual}>{formatPercent(debt.tasa_anual)}</OrPending>
-          </Field>
-          <Field label="Cuota mensual">
-            <OrPending value={debt.cuota_mensual}>
-              <Money value={debt.cuota_mensual} />
-            </OrPending>
-          </Field>
+          {debt.interes_modo === 'monto_original' ? (
+            <Field label="Interés fijo">{formatPercent((debt.tasa_anual ?? 0) / 12)} mensual</Field>
+          ) : (
+            <Field label="Tasa anual">
+              <OrPending value={debt.tasa_anual}>{formatPercent(debt.tasa_anual)}</OrPending>
+            </Field>
+          )}
+          {debt.pago_unico ? (
+            <Field label="Pago único">{formatDate(debt.fecha_vencimiento)}</Field>
+          ) : (
+            <Field label="Cuota mensual">
+              <OrPending value={debt.cuota_mensual}>
+                <Money value={debt.cuota_mensual} />
+              </OrPending>
+            </Field>
+          )}
           <Field label="Día de pago">{debt.dia_pago ?? '—'}</Field>
           <Field label="Seguro">
             <OrPending value={debt.seguro_mensual}>

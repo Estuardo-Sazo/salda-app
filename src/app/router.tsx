@@ -7,6 +7,9 @@ import { DashboardPage } from '@/features/dashboard/dashboard-page'
 import { DebtDetailPage } from '@/features/debts/debt-detail-page'
 import { DebtFormPage } from '@/features/debts/debt-form-page'
 import { DebtsPage } from '@/features/debts/debts-page'
+import { ExtraIncomePage } from '@/features/income/extra-income-page'
+import { ExpenseFormPage } from '@/features/expenses/expense-form-page'
+import { ExpensesPage } from '@/features/expenses/expenses-page'
 import { MorePage } from '@/features/more/more-page'
 import { OnboardingPage } from '@/features/onboarding/onboarding-page'
 import { PaymentFormPage } from '@/features/payments/payment-form-page'
@@ -24,14 +27,9 @@ export const router = createBrowserRouter([
           { path: 'bienvenida', element: <OnboardingPage /> },
           { path: 'registrar', element: <RegisterPage /> },
           { path: 'registrar/pago', element: <PaymentFormPage /> },
-          {
-            path: 'registrar/gasto',
-            element: (
-              <ComingSoon title="Registrar gasto" fase={4}>
-                Monto, descripción, categoría y método. Las compras con tarjeta se marcan como deuda nueva.
-              </ComingSoon>
-            ),
-          },
+          { path: 'registrar/gasto', element: <ExpenseFormPage /> },
+          { path: 'gastos', element: <ExpensesPage /> },
+          { path: 'gastos/:id/editar', element: <ExpenseFormPage /> },
           { path: 'deudas', element: <DebtsPage /> },
           { path: 'deudas/nueva', element: <DebtFormPage /> },
           { path: 'deudas/:id', element: <DebtDetailPage /> },
@@ -49,6 +47,7 @@ export const router = createBrowserRouter([
           },
           { path: 'reportes', element: <ComingSoon title="Reportes" fase={7} /> },
           { path: 'mas', element: <MorePage /> },
+          { path: 'mas/ingresos-extra', element: <ExtraIncomePage /> },
           { path: 'mas/cobros', element: <ComingSoon title="Dinero que me deben" fase={7} /> },
           { path: 'mas/exportar', element: <ComingSoon title="Importar / exportar" fase={7} /> },
           { path: '*', element: <Navigate to="/" replace /> },

@@ -1,5 +1,6 @@
 import { D, EPSILON, ZERO, dec, sumMoney, toMoney, type Dec } from './money'
-import { addMonths } from './period'
+import { addMonths, normalizePeriod } from './period'
+import { formatPeriodName } from './period-name'
 import type { DebtInput, DebtMonth, Liquidacion, PlanInput, PlanMonth, PlanResult } from './types'
 
 const DEFAULT_MAX_MESES = 120
@@ -20,6 +21,9 @@ interface DebtState {
   cuota: Dec
   saldo: Dec
   installments: InstallmentState[]
+  /** Interés fijo mensual (préstamos sobre monto original); null = sobre saldo. */
+  fijo: Dec | null
+  vencimiento: string | null
 }
 
 function fueraSaldo(state: DebtState): Dec {
@@ -50,6 +54,8 @@ function initState(debt: DebtInput): DebtState {
     cuota: dec(debt.cuotaMensual),
     saldo: dec(debt.saldo),
     installments,
+    fijo: debt.interesFijoMensual != null ? dec(debt.interesFijoMensual) : null,
+    vencimiento: debt.vencimiento ? normalizePeriod(debt.vencimiento) : null,
   }
 }
 
@@ -92,6 +98,14 @@ function describeAssumptions(input: PlanInput, states: DebtState[]): { supuestos
     if (d.tipo === 'tarjeta' && s.seguro.gt(0)) {
       supuestos.push(`${d.nombre}: seguro de Q${s.seguro.toFixed(2)} mientras haya saldo.`)
     }
+    if (s.fijo) {
+      supuestos.push(`${d.nombre}: interés fijo de Q${s.fijo.toFixed(2)} por mes sobre el monto original.`)
+    }
+    if (s.vencimiento) {
+      supuestos.push(
+        `${d.nombre}: se paga todo el saldo en ${formatPeriodName(s.vencimiento)}, fuera del presupuesto mensual.`,
+      )
+    }
     for (const i of s.installments) {
       if (i.cargo.gt(0)) {
         supuestos.push(`${d.nombre}: cargo extra de Q${i.cargo.toFixed(2)} en cada cuota pendiente (${i.restantes}).`)
@@ -108,6 +122,7 @@ export function projectPlan(input: PlanInput): PlanResult {
   const presupuesto = dec(input.presupuestoDeudas)
   const abonoExtra = dec(input.abonoExtra ?? 0)
   const libreBase = dec(input.ingresoMensual ?? 0).minus(input.gastosFijos ?? 0)
+  const extras = new Map(Object.entries(input.ingresosExtra ?? {}).map(([p, v]) => [normalizePeriod(p), dec(v)]))
   const { supuestos, advertencias } = describeAssumptions(input, states)
 
   const deudaInicial = sumMoney(states.map(totalDeuda))
@@ -127,13 +142,15 @@ export function projectPlan(input: PlanInput): PlanResult {
     const pagos = new Map<DebtState, Dec>()
     const intereses = new Map<DebtState, Dec>()
     const cargos = new Map<DebtState, Dec>()
+    /** Pagos únicos al vencimiento: obligatorios y fuera del presupuesto. */
+    const obligatorios = new Map<DebtState, Dec>()
 
     // 1–3. Interés, cargos, cuotas fuera de saldo y pago base.
     for (const s of states) {
       let interes = ZERO
       let cargo = ZERO
       if (s.saldo.gt(0)) {
-        interes = s.saldo.times(s.rMensual)
+        interes = s.fijo ?? s.saldo.times(s.rMensual)
         if (s.input.tipo === 'tarjeta') cargo = cargo.plus(s.seguro)
       }
       s.saldo = s.saldo.plus(interes).plus(cargo)
@@ -148,6 +165,14 @@ export function projectPlan(input: PlanInput): PlanResult {
         cargo = cargo.plus(i.cargo)
       }
 
+      if (s.vencimiento && periodo >= s.vencimiento && s.saldo.gt(0)) {
+        obligatorios.set(s, s.saldo)
+        pagos.set(s, s.saldo)
+        s.saldo = ZERO
+        intereses.set(s, interes)
+        cargos.set(s, cargo)
+        continue
+      }
       const pago = s.saldo.gt(0) ? D.min(s.cuota, s.saldo) : ZERO
       s.saldo = s.saldo.minus(pago)
       pagos.set(s, pago)
@@ -156,7 +181,7 @@ export function projectPlan(input: PlanInput): PlanResult {
     }
 
     // 4. Redistribución del sobrante.
-    const pagoBase = sumMoney(pagos.values())
+    const pagoBase = sumMoney(pagos.values()).minus(sumMoney(obligatorios.values()))
     let disponible = input.estrategia === 'cuotas_fijas' ? abonoExtra : presupuesto.plus(abonoExtra).minus(pagoBase)
     if (disponible.lt(0)) {
       presupuestoInsuficiente = true
@@ -192,6 +217,14 @@ export function projectPlan(input: PlanInput): PlanResult {
     }
 
     const pagoMes = sumMoney(pagos.values())
+    const libreMes = libreBase.plus(extras.get(periodo) ?? ZERO).minus(pagoMes)
+    for (const [s, monto] of obligatorios) {
+      if (libreMes.lt(0)) {
+        advertencias.push(
+          `En ${formatPeriodName(periodo)} vence ${s.input.nombre} (Q${monto.toFixed(2)}): el flujo libre de ese mes queda en −Q${libreMes.abs().toFixed(2)}.`,
+        )
+      }
+    }
     const costoMes = sumMoney(intereses.values()).plus(sumMoney(cargos.values()))
     const saldoTotal = sumMoney(states.map((s) => s.saldo))
     const fueraTotal = sumMoney(states.map(fueraSaldo))
@@ -208,7 +241,7 @@ export function projectPlan(input: PlanInput): PlanResult {
       deudaReal: toMoney(deudaReal),
       pago: toMoney(pagoMes),
       interesCargos: toMoney(costoMes),
-      flujoLibre: toMoney(libreBase.minus(pagoMes)),
+      flujoLibre: toMoney(libreMes),
     })
 
     // 6. Fin del ciclo.
