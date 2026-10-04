@@ -3,12 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Saldá · Control de deudas</title>
-    <meta name="description" content="Registrá pagos y gastos, seguí tu plan y quedá libre de deudas." />
+    <title>Saldá · Controlá tus deudas en quetzales</title>
+    <meta
+      name="description"
+      content="Registrá los pagos de tus tarjetas y préstamos, mirá cuánto se va en intereses y seguí un plan con la fecha exacta en que quedás en Q0. Hecho para Guatemala."
+    />
+    <link rel="canonical" href="__SITE_URL__/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_GT" />
+    <meta property="og:site_name" content="Saldá" />
+    <meta property="og:url" content="__SITE_URL__/" />
+    <meta property="og:title" content="Saldá · Controlá tus deudas en quetzales" />
+    <meta
+      property="og:description"
+      content="Pagos, intereses, intracuotas y un plan con fecha de fin. Tu deuda real, mes a mes, hasta llegar a Q0."
+    />
+    <meta property="og:image" content="__SITE_URL__/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Saldá: la Q del quetzal con una pluma, y el texto Controlá tus deudas en quetzales"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#faf7f3" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png" />
     <script>
+      // Antes de pintar: con sesión, `/` va directo a la app; fuera de `/` se muestra el arranque, no la página pública.
+      try {
+        var p = location.pathname
+        var conSesion = false
+        for (var i = 0; i < localStorage.length; i++) {
+          if (/^sb-.+-auth-token$/.test(localStorage.key(i) || '')) conSesion = true
+        }
+        if (p === '/' && conSesion && !location.hash) location.replace('/inicio')
+        if (p !== '/') {
+          document.documentElement.classList.add('app-route')
+          var robots = document.createElement('meta')
+          robots.name = 'robots'
+          robots.content = 'noindex'
+          document.head.appendChild(robots)
+        }
+      } catch (e) {}
       // Aplica el tema antes de pintar para evitar el destello claro/oscuro.
       try {
         var t = localStorage.getItem('salda-theme')
@@ -23,6 +60,11 @@
       }
       html.dark {
         background: oklch(0.175 0.022 172);
+      }
+      /* En `/` se ve la página pública prerenderizada; en el resto, la pantalla de carga. */
+      html:not(.app-route) .boot,
+      .app-route .landing-static {
+        display: none;
       }
       .boot {
         min-height: 100dvh;
@@ -62,6 +104,7 @@
           </g>
         </svg>
       </div>
+      <!--landing-->
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

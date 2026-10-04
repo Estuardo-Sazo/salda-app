@@ -91,7 +91,7 @@ export function OnboardingPage() {
     importData.mutate(payload, {
       onSuccess: () => {
         toast.success(`Datos cargados. «${payload.plan.nombre}» quedó activo.`)
-        navigate('/', { replace: true })
+        navigate('/inicio', { replace: true })
       },
       onError: (e) => toast.error(e.message),
     })
@@ -219,7 +219,7 @@ export function OnboardingPage() {
             title="Importar Excel"
             description="Subí Control_deudas.xlsx o un respaldo de Saldá. Vas a ver una vista previa con validación."
           >
-            <ImportPanel onImported={() => navigate('/', { replace: true })} />
+            <ImportPanel onImported={() => navigate('/inicio', { replace: true })} />
           </Option>
         </div>
       </div>

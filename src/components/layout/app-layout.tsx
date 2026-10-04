@@ -44,7 +44,7 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { to: '/', label: 'Inicio', icon: Home, end: true },
+  { to: '/inicio', label: 'Inicio', icon: Home, end: true },
   { to: '/registrar', label: 'Registrar', icon: Plus },
   { to: '/deudas', label: 'Deudas', icon: CreditCard },
   { to: '/gastos', label: 'Gastos', icon: Receipt, desktopOnly: true },
@@ -179,7 +179,7 @@ export function AppLayout() {
       </a>
       {/* Barra lateral (escritorio) */}
       <aside className="bg-card/60 sticky top-0 hidden h-dvh flex-col gap-6 border-r px-4 py-6 lg:flex">
-        <Link to="/" className="px-2">
+        <Link to="/inicio" className="px-2">
           <Logo />
         </Link>
         <Button className="h-10 justify-start gap-2 rounded-xl" onClick={() => setQuickAdd(true)}>
@@ -207,7 +207,7 @@ export function AppLayout() {
 
       <div className="flex min-w-0 flex-col">
         <header className="bg-background/80 sticky top-0 z-30 flex h-14 items-center justify-between border-b px-4 backdrop-blur lg:px-8">
-          <Link to="/" className="lg:invisible">
+          <Link to="/inicio" className="lg:invisible">
             <Logo />
           </Link>
           <div className="flex items-center gap-1">

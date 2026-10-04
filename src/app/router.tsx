@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { RequireAuth } from '@/app/require-auth'
+import { RootRoute } from '@/app/root-route'
 // El login va en el bundle inicial: es la primera pantalla sin sesión y evita una descarga en cadena.
 import { LoginPage } from '@/features/auth/login-page'
 import { lazy, Suspense, type ComponentType } from 'react'
@@ -31,6 +32,7 @@ const ReportsPage = page(() => import('@/features/reports/reports-page'), 'Repor
 const SimulatorPage = page(() => import('@/features/simulator/simulator-page'), 'SimulatorPage')
 
 export const router = createBrowserRouter([
+  { path: '/', element: <RootRoute /> },
   {
     path: '/login',
     element: <LoginPage />,
@@ -45,7 +47,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
         children: [
-          { index: true, element: <DashboardPage /> },
+          { path: 'inicio', element: <DashboardPage /> },
           { path: 'bienvenida', element: <OnboardingPage /> },
           { path: 'bienvenida/cero', element: <WizardPage /> },
           { path: 'registrar', element: <RegisterPage /> },
@@ -67,7 +69,7 @@ export const router = createBrowserRouter([
           { path: 'mas/ingresos-extra', element: <ExtraIncomePage /> },
           { path: 'mas/cobros', element: <ReceivablesPage /> },
           { path: 'mas/exportar', element: <DataPage /> },
-          { path: '*', element: <Navigate to="/" replace /> },
+          { path: '*', element: <Navigate to="/inicio" replace /> },
         ],
       },
     ],

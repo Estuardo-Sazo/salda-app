@@ -141,7 +141,7 @@ export function LoginPage() {
   const { session, loading } = useAuth()
   const location = useLocation()
   useDocumentTitle('Entrar')
-  const from = (location.state as { from?: string } | null)?.from ?? '/'
+  const from = (location.state as { from?: string } | null)?.from ?? '/inicio'
   if (!loading && session) return <Navigate to={from} replace />
 
   return (

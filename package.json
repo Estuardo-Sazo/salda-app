@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/prerender.mjs",
     "lint": "oxlint src",
     "preview": "vite preview",
     "icons": "node scripts/generate-icons.mjs",
@@ -21,7 +21,8 @@
     "db:types": "supabase gen types typescript --linked --schema public > src/lib/supabase/database.types.ts",
     "private:patterns": "node scripts/private-patterns.mjs",
     "private:check": "node scripts/check-private.mjs --all",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "prepare": "git config core.hooksPath .githooks || true",
+    "og": "node scripts/generate-og.mjs"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",

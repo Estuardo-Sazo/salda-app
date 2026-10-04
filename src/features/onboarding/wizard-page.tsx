@@ -580,7 +580,7 @@ export function WizardPage() {
       {
         onSuccess: () => {
           toast.success('¡Listo! Tu plan quedó activo.')
-          navigate('/', { replace: true })
+          navigate('/inicio', { replace: true })
         },
         onError: (err) => toast.error(err.message),
       },

@@ -119,7 +119,7 @@ function Hero({ model }: { model: DashboardModel }) {
           <span
             className={cn(
               'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium',
-              adelantado ? 'bg-quetzal/20 text-quetzal' : 'bg-destructive/25 text-red-200',
+              adelantado ? 'bg-quetzal/15 text-quetzal' : 'bg-destructive/25 text-red-200',
             )}
           >
             {adelantado ? (
