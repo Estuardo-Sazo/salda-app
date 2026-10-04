@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { RequireAuth } from '@/app/require-auth'
-import { ComingSoon } from '@/components/common'
 import { AppLayout } from '@/components/layout/app-layout'
 import { LoginPage } from '@/features/auth/login-page'
 import { DashboardPage } from '@/features/dashboard/dashboard-page'
@@ -17,6 +16,7 @@ import { WizardPage } from '@/features/onboarding/wizard-page'
 import { PaymentFormPage } from '@/features/payments/payment-form-page'
 import { BalancesPage } from '@/features/plan/balances-page'
 import { PlanPage } from '@/features/plan/plan-page'
+import { ReceivablesPage } from '@/features/receivables/receivables-page'
 import { RegisterPage } from '@/features/register/register-page'
 import { ReportsPage } from '@/features/reports/reports-page'
 import { SimulatorPage } from '@/features/simulator/simulator-page'
@@ -48,7 +48,7 @@ export const router = createBrowserRouter([
           { path: 'reportes', element: <ReportsPage /> },
           { path: 'mas', element: <MorePage /> },
           { path: 'mas/ingresos-extra', element: <ExtraIncomePage /> },
-          { path: 'mas/cobros', element: <ComingSoon title="Dinero que me deben" fase={7} /> },
+          { path: 'mas/cobros', element: <ReceivablesPage /> },
           { path: 'mas/exportar', element: <DataPage /> },
           { path: '*', element: <Navigate to="/" replace /> },
         ],
