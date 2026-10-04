@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useDocumentTitle } from '@/hooks/use-document-title'
-import { CheckCircle2, KeyRound, Loader2, Mail } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, KeyRound, Loader2, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Navigate, useLocation } from 'react-router'
@@ -147,10 +147,10 @@ export function LoginPage() {
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       <section className="bg-ink text-ink-foreground relative hidden overflow-hidden p-12 lg:flex lg:flex-col lg:justify-between">
-        <div className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3 self-start" aria-label="Saldá, página principal">
           <LogoMark className="size-10" />
           <span className="text-xl font-semibold tracking-tight">Saldá</span>
-        </div>
+        </a>
         <div className="max-w-md">
           <p className="text-4xl leading-tight font-semibold tracking-tight">
             Cada pago te acerca al <span className="text-gold">punto final</span>.
@@ -160,7 +160,7 @@ export function LoginPage() {
             deudas.
           </p>
         </div>
-        <p className="text-ink-foreground/50 text-sm">Quetzales · America/Guatemala</p>
+        <p className="text-ink-foreground/50 text-sm">Tus deudas, mes a mes, hasta llegar a cero.</p>
         <svg
           aria-hidden
           viewBox="0 0 400 200"
@@ -172,28 +172,48 @@ export function LoginPage() {
         </svg>
       </section>
 
-      <section className="flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
-            <LogoMark className="size-12 lg:hidden" />
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Entrá a Saldá</h1>
-              <p className="text-muted-foreground mt-1 text-sm">Tus datos solo los ves vos.</p>
+      <section className="flex flex-col px-4 py-6 sm:px-8">
+        <a
+          href="/"
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 self-start rounded-lg py-1 text-sm font-medium"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          Volver al inicio
+        </a>
+        <div className="flex flex-1 items-center justify-center py-8">
+          <div className="w-full max-w-sm">
+            <div className="mb-8 flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
+              <LogoMark className="size-12 lg:hidden" />
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight">Entrá a Saldá</h1>
+                <p className="text-muted-foreground mt-1 text-sm">Tus datos solo los ves vos.</p>
+              </div>
             </div>
+            <Tabs defaultValue="magic">
+              <TabsList className="mb-4 grid w-full grid-cols-2">
+                <TabsTrigger value="magic">Enlace mágico</TabsTrigger>
+                <TabsTrigger value="password">Contraseña</TabsTrigger>
+              </TabsList>
+              <TabsContent value="magic">
+                <MagicLinkForm />
+              </TabsContent>
+              <TabsContent value="password">
+                <PasswordForm />
+              </TabsContent>
+            </Tabs>
           </div>
-          <Tabs defaultValue="magic">
-            <TabsList className="mb-4 grid w-full grid-cols-2">
-              <TabsTrigger value="magic">Enlace mágico</TabsTrigger>
-              <TabsTrigger value="password">Contraseña</TabsTrigger>
-            </TabsList>
-            <TabsContent value="magic">
-              <MagicLinkForm />
-            </TabsContent>
-            <TabsContent value="password">
-              <PasswordForm />
-            </TabsContent>
-          </Tabs>
         </div>
+        <p className="text-muted-foreground text-center text-xs">
+          Al entrar aceptás los{' '}
+          <a href="/terminos" className="hover:text-foreground underline underline-offset-2">
+            Términos
+          </a>{' '}
+          y la{' '}
+          <a href="/privacidad" className="hover:text-foreground underline underline-offset-2">
+            Política de privacidad
+          </a>
+          .
+        </p>
       </section>
     </div>
   )

@@ -29,10 +29,28 @@ const PlanPage = page(() => import('@/features/plan/plan-page'), 'PlanPage')
 const ReceivablesPage = page(() => import('@/features/receivables/receivables-page'), 'ReceivablesPage')
 const RegisterPage = page(() => import('@/features/register/register-page'), 'RegisterPage')
 const ReportsPage = page(() => import('@/features/reports/reports-page'), 'ReportsPage')
+const TermsPage = page(() => import('@/features/legal/legal-pages'), 'TermsPage')
+const PrivacyPage = page(() => import('@/features/legal/legal-pages'), 'PrivacyPage')
 const SimulatorPage = page(() => import('@/features/simulator/simulator-page'), 'SimulatorPage')
 
 export const router = createBrowserRouter([
   { path: '/', element: <RootRoute /> },
+  {
+    path: '/terminos',
+    element: (
+      <Suspense fallback={null}>
+        <TermsPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/privacidad',
+    element: (
+      <Suspense fallback={null}>
+        <PrivacyPage />
+      </Suspense>
+    ),
+  },
   {
     path: '/login',
     element: <LoginPage />,

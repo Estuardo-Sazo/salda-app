@@ -1,44 +1,48 @@
 <!doctype html>
-<html lang="es-GT">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Saldá · Controlá tus deudas en quetzales</title>
+    <title>Saldá · Controlá tus deudas y salí de ellas</title>
     <meta
       name="description"
-      content="Registrá los pagos de tus tarjetas y préstamos, mirá cuánto se va en intereses y seguí un plan con la fecha exacta en que quedás en Q0. Hecho para Guatemala."
+      content="Registrá los pagos de tus tarjetas y préstamos, mirá cuánto se va en intereses y seguí un plan con la fecha exacta en que terminás de pagar."
     />
     <link rel="canonical" href="__SITE_URL__/" />
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content="es_GT" />
+    <meta property="og:locale" content="es_LA" />
     <meta property="og:site_name" content="Saldá" />
     <meta property="og:url" content="__SITE_URL__/" />
-    <meta property="og:title" content="Saldá · Controlá tus deudas en quetzales" />
+    <meta property="og:title" content="Saldá · Controlá tus deudas y salí de ellas" />
     <meta
       property="og:description"
-      content="Pagos, intereses, intracuotas y un plan con fecha de fin. Tu deuda real, mes a mes, hasta llegar a Q0."
+      content="Pagos, intereses, compras en cuotas y un plan con fecha de fin. Tu deuda real, mes a mes, hasta llegar a cero."
     />
     <meta property="og:image" content="__SITE_URL__/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Saldá: la Q del quetzal con una pluma, y el texto Controlá tus deudas en quetzales"
+      content="Logo de Saldá y el texto Controlá tus deudas, mes a mes, hasta llegar a cero"
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#faf7f3" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png" />
     <script>
-      // Antes de pintar: con sesión, `/` va directo a la app; fuera de `/` se muestra el arranque, no la página pública.
+      // Antes de pintar: con sesión, `/` va directo a la app; en rutas de la app se muestra el arranque.
       try {
-        var p = location.pathname
+        var p = location.pathname.replace(/\/$/, '') || '/'
+        // Página pública prerenderizada (scripts/prerender.mjs marca su ruta): se ve sin JavaScript y Google la
+        // indexa. Si el servidor devolvió el HTML de otra ruta, se trata como ruta de la app.
+        var pagina = document.querySelector('meta[name="salda-page"]')
+        var publica = !!pagina && pagina.content === p
         var conSesion = false
         for (var i = 0; i < localStorage.length; i++) {
           if (/^sb-.+-auth-token$/.test(localStorage.key(i) || '')) conSesion = true
         }
         if (p === '/' && conSesion && !location.hash) location.replace('/inicio')
-        if (p !== '/') {
+        if (!publica) {
           document.documentElement.classList.add('app-route')
           var robots = document.createElement('meta')
           robots.name = 'robots'
@@ -61,9 +65,9 @@
       html.dark {
         background: oklch(0.175 0.022 172);
       }
-      /* En `/` se ve la página pública prerenderizada; en el resto, la pantalla de carga. */
+      /* En las páginas públicas se ve su HTML prerenderizado; en el resto, la pantalla de carga. */
       html:not(.app-route) .boot,
-      .app-route .landing-static {
+      .app-route .public-static {
         display: none;
       }
       .boot {

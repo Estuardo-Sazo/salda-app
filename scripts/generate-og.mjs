@@ -12,8 +12,8 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" v
   </g>
   <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif" fill="#F2EDE3">
     <text x="440" y="250" font-size="96" font-weight="700" letter-spacing="-3">Saldá</text>
-    <text x="440" y="330" font-size="46" font-weight="500" letter-spacing="-1">Controlá tus deudas en quetzales</text>
-    <text x="440" y="392" font-size="46" font-weight="500" letter-spacing="-1" fill-opacity="0.72">mes a mes, hasta llegar a Q0.</text>
+    <text x="440" y="330" font-size="46" font-weight="500" letter-spacing="-1">Controlá tus deudas,</text>
+    <text x="440" y="392" font-size="46" font-weight="500" letter-spacing="-1" fill-opacity="0.72">mes a mes, hasta llegar a cero.</text>
   </g>
   <path d="M440 432H700M440 450H700" stroke="#E8B53A" stroke-width="7" stroke-linecap="round"/>
 </svg>`

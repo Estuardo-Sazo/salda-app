@@ -9,7 +9,7 @@ export const FEATURES: Feature[] = [
   {
     titulo: 'Tu deuda real, no solo el saldo',
     texto:
-      'Suma las intracuotas, visacuotas y extrafinanciamientos que el banco todavía no cobra y que no aparecen en el estado de cuenta.',
+      'Suma las compras en cuotas y los extrafinanciamientos que el banco todavía no cobra y que no aparecen en el estado de cuenta.',
   },
   {
     titulo: 'Un pago registrado en 15 segundos',
@@ -24,7 +24,7 @@ export const FEATURES: Feature[] = [
   {
     titulo: 'Un plan con fecha de fin',
     texto:
-      'Avalancha, bola de nieve o cuotas fijas. Ves la meta de cada mes, si vas adelantado o atrasado y en qué mes quedás en Q0.',
+      'Avalancha, bola de nieve o cuotas fijas. Ves la meta de cada mes, si vas adelantado o atrasado y en qué mes terminás de pagar.',
   },
   {
     titulo: 'Simulá antes de decidir',
@@ -34,7 +34,7 @@ export const FEATURES: Feature[] = [
   {
     titulo: 'Préstamos de interés fijo y pagos únicos',
     texto:
-      'Los que cobran un porcentaje sobre lo prestado y se pagan de un solo al vencer. El aguinaldo y el Bono 14 entran en tu flujo de ese mes.',
+      'Los que cobran un porcentaje sobre lo prestado y se pagan de un solo al vencer. El aguinaldo, los bonos y otros ingresos extra entran en tu flujo de ese mes.',
   },
   {
     titulo: 'Dinero que te deben',

@@ -30,7 +30,7 @@ function seo(): Plugin {
       this.emitFile({
         type: 'asset',
         fileName: 'sitemap.xml',
-        source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${SITE_URL}/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>\n</urlset>\n`,
+        source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${SITE_URL}/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>\n  <url><loc>${SITE_URL}/terminos</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>\n  <url><loc>${SITE_URL}/privacidad</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>\n</urlset>\n`,
       })
     },
   }
@@ -49,7 +49,7 @@ export default defineConfig({
         short_name: 'Saldá',
         description: 'Registrá pagos y gastos, seguí tu plan y quedá libre de deudas.',
         id: '/',
-        lang: 'es-GT',
+        lang: 'es',
         dir: 'ltr',
         start_url: '/inicio',
         scope: '/',
@@ -82,7 +82,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // `/` se pide a la red: es la página pública prerenderizada.
-        navigateFallbackDenylist: [/^\/auth/, /^\/$/, /^\/(robots\.txt|sitemap\.xml)$/],
+        navigateFallbackDenylist: [/^\/auth/, /^\/$/, /^\/(terminos|privacidad)\/?$/, /^\/(robots\.txt|sitemap\.xml)$/],
       },
     }),
   ],

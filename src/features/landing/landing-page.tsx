@@ -1,15 +1,12 @@
 import { ArrowRight, CheckCircle2, Circle } from 'lucide-react'
-import { LogoMark } from '@/components/brand/logo'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { FAQ, FEATURES, PASOS } from './content'
+import { LOGIN, PublicFooter, PublicHeader } from './public-layout'
 
 /*
  * Página pública. Se prerenderiza a HTML estático en el build (scripts/prerender.mjs), así que no usa
  * el router ni nada del navegador al renderizar: los enlaces son <a> normales.
  */
-
-const LOGIN = '/login'
-const YEAR = new Date().getFullYear()
 
 function CtaPrimary({ children = 'Empezar con Saldá' }: { children?: string }) {
   return (
@@ -89,39 +86,30 @@ function ProductSample() {
 }
 
 export function LandingPage() {
-  useDocumentTitle('Controlá tus deudas en quetzales')
+  useDocumentTitle('Controlá tus deudas y salí de ellas')
 
   return (
     <div className="bg-background text-foreground min-h-dvh">
-      <header className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <a href="/" className="flex items-center gap-2" aria-label="Saldá, inicio">
-          <LogoMark className="size-8" />
-          <span className="text-lg font-semibold tracking-tight">Saldá</span>
+      <PublicHeader>
+        <a href="#funciones" className="text-muted-foreground hover:text-foreground hidden sm:inline">
+          Funciones
         </a>
-        <nav aria-label="Secciones" className="flex items-center gap-6 text-sm">
-          <a href="#funciones" className="text-muted-foreground hover:text-foreground hidden sm:inline">
-            Funciones
-          </a>
-          <a href="#como-funciona" className="text-muted-foreground hover:text-foreground hidden sm:inline">
-            Cómo funciona
-          </a>
-          <a href="#preguntas" className="text-muted-foreground hover:text-foreground hidden sm:inline">
-            Preguntas
-          </a>
-          <a href={LOGIN} className="hover:bg-accent rounded-lg border px-3 py-1.5 font-medium transition">
-            Iniciar sesión
-          </a>
-        </nav>
-      </header>
+        <a href="#como-funciona" className="text-muted-foreground hover:text-foreground hidden sm:inline">
+          Cómo funciona
+        </a>
+        <a href="#preguntas" className="text-muted-foreground hover:text-foreground hidden sm:inline">
+          Preguntas
+        </a>
+      </PublicHeader>
 
       <main>
         <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-10 pb-20 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:pt-16">
           <div>
-            <p className="text-muted-foreground text-sm font-medium tracking-wide">Control de deudas · Guatemala</p>
+            <p className="text-muted-foreground text-sm font-medium tracking-wide">Control de deudas personales</p>
             <h1 className="mt-4 text-4xl leading-[1.05] font-semibold tracking-tight sm:text-6xl">
               Saldá tus deudas, mes a mes, hasta llegar a{' '}
               <span className="decoration-gold underline decoration-double decoration-4 underline-offset-[0.18em]">
-                Q0
+                cero
               </span>
               .
             </h1>
@@ -147,8 +135,8 @@ export function LandingPage() {
                 Todo lo que hace tu hoja de control, sin la hoja.
               </h2>
               <p className="text-muted-foreground mt-4 max-w-md leading-relaxed">
-                Saldá nació de un Excel real de deudas: tarjetas con intracuotas, préstamos con interés fijo, aguinaldo
-                para el pago grande de diciembre. Por eso calcula lo que una app genérica no ve.
+                Saldá nació de un Excel real de deudas: tarjetas con compras en cuotas, préstamos con interés fijo,
+                aguinaldo para el pago grande de diciembre. Por eso calcula lo que una app genérica no ve.
               </p>
             </div>
             <dl className="grid gap-x-10 sm:grid-cols-2">
@@ -180,25 +168,26 @@ export function LandingPage() {
         <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
           <div className="grid gap-10 lg:grid-cols-2">
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                Hecho para cómo se paga en Guatemala
-              </h2>
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Pensado para deudas de verdad</h2>
             </div>
             <ul className="grid gap-4 text-[15px] leading-relaxed">
               <li className="border-t pt-4">
-                <span className="font-semibold">Quetzales y fechas como las escribís:</span>{' '}
-                <span className="text-muted-foreground">Q1,234.56 y 30/09/2026, en español de Guatemala.</span>
-              </li>
-              <li className="border-t pt-4">
-                <span className="font-semibold">Aguinaldo y Bono 14:</span>{' '}
+                <span className="font-semibold">Compras en cuotas que no ves en el saldo:</span>{' '}
                 <span className="text-muted-foreground">
-                  los registrás una vez y Saldá te dice si alcanzan para un pago grande o cuánto apartar cada mes.
+                  con un botón marcás la cuota que el banco ya cobró y tu deuda real se ajusta.
                 </span>
               </li>
               <li className="border-t pt-4">
-                <span className="font-semibold">Intracuotas y visacuotas:</span>{' '}
+                <span className="font-semibold">Ingresos extra:</span>{' '}
                 <span className="text-muted-foreground">
-                  con un botón marcás la cuota que el banco ya cobró y la deuda real se ajusta.
+                  aguinaldo, bonos o cualquier ingreso de un mes. Saldá te dice si alcanzan para un pago grande o cuánto
+                  apartar cada mes.
+                </span>
+              </li>
+              <li className="border-t pt-4">
+                <span className="font-semibold">Préstamos entre personas:</span>{' '}
+                <span className="text-muted-foreground">
+                  los que cobran un porcentaje fijo al mes, tanto los que debés como los que prestás.
                 </span>
               </li>
               <li className="border-t pt-4">
@@ -240,16 +229,7 @@ export function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t">
-        <div className="text-muted-foreground mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-8 text-sm sm:px-6">
-          <span className="flex items-center gap-2">
-            <LogoMark className="size-5" />© {YEAR} Saldá · Hecho en Guatemala
-          </span>
-          <a href={LOGIN} className="hover:text-foreground">
-            Iniciar sesión
-          </a>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   )
 }
