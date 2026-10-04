@@ -1,9 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
+import { useDebtStatus, useProfile } from '@/features/common/queries'
+import { useExtraIncomes } from '@/features/income/api'
 import type { PlanSupuestos } from '@/lib/seed/build-payload'
 import { num, numOrNull, supabase, unwrap } from '@/lib/supabase/client'
 import type { Json, Tables } from '@/lib/supabase/database.types'
 import type { PlanRowSource } from './model'
-import type { PlanInstallmentSource, SavePlanPayload } from './plan-input'
+import type { PlanInstallmentSource, PlanSources, SavePlanPayload } from './plan-input'
 
 export const planKeys = {
   all: ['plans'] as const,
@@ -77,6 +80,31 @@ export function useFixedExpensesTotal() {
       return rows.reduce((acc, r) => acc + Math.round(num(r.monto) * 100), 0) / 100
     },
   })
+}
+
+/** Todo lo que necesita la proyección: deudas, cuotas fuera de saldo, ingreso, gastos fijos e ingresos extra. */
+export function usePlanSources(): { sources: PlanSources | null; error: Error | null } {
+  const debts = useDebtStatus()
+  const installments = useActiveInstallments()
+  const profile = useProfile()
+  const fixed = useFixedExpensesTotal()
+  const extras = useExtraIncomes()
+
+  const sources = useMemo<PlanSources | null>(() => {
+    if (!debts.data || !installments.data || profile.data === undefined || fixed.data === undefined || !extras.data) {
+      return null
+    }
+    return {
+      debts: debts.data,
+      installments: installments.data,
+      ingresoMensual: profile.data?.ingreso_mensual ?? null,
+      gastosFijos: fixed.data,
+      ingresosExtra: extras.data,
+    }
+  }, [debts.data, installments.data, profile.data, fixed.data, extras.data])
+
+  const error = [debts, installments, profile, fixed, extras].find((q) => q.error)?.error ?? null
+  return { sources, error }
 }
 
 export function useSavePlan() {

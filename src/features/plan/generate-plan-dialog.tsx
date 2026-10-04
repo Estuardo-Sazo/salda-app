@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import { Money } from '@/components/common'
+import { ErrorState, Money } from '@/components/common'
 import { ChoiceChip, Field, MoneyInput } from '@/components/form'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,13 +19,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
-import { useActivePlan, useDebtStatus, usePeriodPayments, useProfile } from '@/features/common/queries'
-import { useExtraIncomes } from '@/features/income/api'
+import { useActivePlan, usePeriodPayments } from '@/features/common/queries'
 import { projectPlan, type Strategy } from '@/lib/finance'
 import { monthsBetween } from '@/lib/finance/period'
 import { currentPeriod, formatPeriod, formatPeriodLong } from '@/lib/format'
 import { moneyField, parseAmount, toInput } from '@/lib/forms'
-import { useActiveInstallments, useFixedExpensesTotal, useSavePlan } from './api'
+import { usePlanSources, useSavePlan } from './api'
 import {
   buildPlanInput,
   buildSavePlanPayload,
@@ -243,30 +242,15 @@ function GenerateForm({ sources, onDone }: { sources: PlanSources; onDone: () =>
 }
 
 export function GeneratePlanDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const debts = useDebtStatus()
-  const installments = useActiveInstallments()
-  const profile = useProfile()
-  const fixed = useFixedExpensesTotal()
-  const extras = useExtraIncomes()
+  const { sources, error } = usePlanSources()
   const active = useActivePlan()
-
-  const sources = useMemo<PlanSources | null>(() => {
-    if (!debts.data || !installments.data || profile.data === undefined || fixed.data === undefined || !extras.data) {
-      return null
-    }
-    return {
-      debts: debts.data,
-      installments: installments.data,
-      ingresoMensual: profile.data?.ingreso_mensual ?? null,
-      gastosFijos: fixed.data,
-      ingresosExtra: extras.data,
-    }
-  }, [debts.data, installments.data, profile.data, fixed.data, extras.data])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
-        {sources && active.data !== undefined ? (
+        {error ? (
+          <ErrorState error={error} />
+        ) : sources && active.data !== undefined ? (
           <GenerateForm sources={sources} onDone={() => onOpenChange(false)} />
         ) : (
           <div className="grid gap-3" aria-busy="true" aria-label="Cargando">
