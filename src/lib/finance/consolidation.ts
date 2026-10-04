@@ -1,5 +1,5 @@
 import { EPSILON, ZERO, dec, sumMoney, toMoney } from './money'
-import { impliedMonthlyRate, loanPayment } from './rates'
+import { impliedMonthlyRate, loanPaymentCeil } from './rates'
 import type { DebtInput, PlanInput } from './types'
 
 export const CONSOLIDATION_ID = 'consolidacion'
@@ -61,7 +61,7 @@ export function buildConsolidation(base: PlanInput, opts: ConsolidationOptions):
   const advertencias: string[] = []
   const rMensual =
     opts.cuota != null ? impliedMonthlyRate(opts.monto, opts.plazoMeses, opts.cuota) : opts.tasaAnual! / 12
-  const cuota = opts.cuota ?? loanPayment(opts.monto, rMensual, opts.plazoMeses)
+  const cuota = opts.cuota ?? loanPaymentCeil(opts.monto, rMensual, opts.plazoMeses)
 
   let disponible = dec(opts.monto)
   let costoCancelacion = ZERO

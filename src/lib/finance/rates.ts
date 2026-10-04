@@ -10,6 +10,13 @@ export function loanPayment(principal: number, rMensual: number, meses: number):
   return round2((principal * rMensual) / (1 - (1 + rMensual) ** -meses))
 }
 
+/** Cuota fija redondeada hacia arriba al centavo, como la cobran los bancos: liquida en `meses` sin residuos. */
+export function loanPaymentCeil(principal: number, rMensual: number, meses: number): number {
+  if (meses <= 0) throw new Error('El plazo debe ser mayor a 0')
+  const raw = rMensual === 0 ? principal / meses : (principal * rMensual) / (1 - (1 + rMensual) ** -meses)
+  return Math.ceil(Math.round(raw * 1e6) / 1e4) / 100
+}
+
 /**
  * Tasa mensual implícita de una oferta de préstamo (bisección).
  * Devuelve 0 si la cuota no alcanza a cubrir el capital sin interés.

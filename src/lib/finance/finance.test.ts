@@ -8,6 +8,7 @@ import {
   compareScenarios,
   impliedMonthlyRate,
   loanPayment,
+  loanPaymentCeil,
   monthlyRate,
   monthsBetween,
   monthsToPayoff,
@@ -233,7 +234,7 @@ describe('consolidación', () => {
     expect(s.costoCancelacion).toBe(200)
     expect(s.sobranteAplicado).toBe(1300)
     expect(s.sobranteLibre).toBe(0)
-    expect(s.cuota).toBe(loanPayment(10000, 0.02, 24))
+    expect(s.cuota).toBe(loanPaymentCeil(10000, 0.02, 24))
     expect(s.input.debts.map((d) => [d.id, d.saldo])).toEqual([
       ['consolidacion', 10000],
       ['z', 2700],
@@ -241,6 +242,21 @@ describe('consolidación', () => {
     expect(s.input.presupuestoDeudas).toBeCloseTo(900 - 300 - 400 + s.cuota, 2)
     expect(s.advertencias.join(' ')).toMatch(/x: saldo de cancelación PENDIENTE/)
     expect(projectPlan(s.input).mesLibre).toBeLessThanOrEqual(24)
+  })
+
+  it('la cuota calculada con la tasa se redondea hacia arriba y liquida justo en el plazo', () => {
+    expect(loanPayment(10000, 0.02, 24)).toBe(528.71)
+    expect(loanPaymentCeil(10000, 0.02, 24)).toBe(528.72)
+    expect(loanPaymentCeil(1200, 0, 12)).toBe(100)
+    expect(loanPaymentCeil(1000, 0, 3)).toBe(333.34)
+    expect(() => loanPaymentCeil(1000, 0.01, 0)).toThrow()
+    const s = buildConsolidation(base, { monto: 10300, plazoMeses: 24, tasaAnual: 0.24, cancelar: [] })
+    const solo = projectPlan({
+      ...s.input,
+      estrategia: 'cuotas_fijas',
+      debts: s.input.debts.filter((d) => d.id === 'consolidacion'),
+    })
+    expect(solo.mesLibre).toBe(24)
   })
 
   it('con cuota ofrecida calcula la tasa implícita', () => {
