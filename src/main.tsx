@@ -6,10 +6,12 @@ import { AuthProvider } from '@/app/providers/auth'
 import { ThemeProvider } from '@/app/providers/theme'
 import { router } from '@/app/router'
 import { Toaster } from '@/components/ui/sonner'
-import { TooltipProvider } from '@/components/ui/tooltip'
 import { SetupScreen } from '@/features/auth/setup-screen'
+import { listenForInstallPrompt } from '@/lib/pwa/install'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
 import './index.css'
+
+listenForInstallPrompt()
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,10 +24,8 @@ createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <TooltipProvider>
-            {isSupabaseConfigured ? <RouterProvider router={router} /> : <SetupScreen />}
-            <Toaster position="top-center" richColors closeButton />
-          </TooltipProvider>
+          {isSupabaseConfigured ? <RouterProvider router={router} /> : <SetupScreen />}
+          <Toaster position="top-center" richColors closeButton />
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

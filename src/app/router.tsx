@@ -1,33 +1,49 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { RequireAuth } from '@/app/require-auth'
-import { AppLayout } from '@/components/layout/app-layout'
+// El login va en el bundle inicial: es la primera pantalla sin sesión y evita una descarga en cadena.
 import { LoginPage } from '@/features/auth/login-page'
-import { DashboardPage } from '@/features/dashboard/dashboard-page'
-import { DataPage } from '@/features/data/data-page'
-import { DebtDetailPage } from '@/features/debts/debt-detail-page'
-import { DebtFormPage } from '@/features/debts/debt-form-page'
-import { DebtsPage } from '@/features/debts/debts-page'
-import { ExtraIncomePage } from '@/features/income/extra-income-page'
-import { ExpenseFormPage } from '@/features/expenses/expense-form-page'
-import { ExpensesPage } from '@/features/expenses/expenses-page'
-import { MorePage } from '@/features/more/more-page'
-import { OnboardingPage } from '@/features/onboarding/onboarding-page'
-import { WizardPage } from '@/features/onboarding/wizard-page'
-import { PaymentFormPage } from '@/features/payments/payment-form-page'
-import { BalancesPage } from '@/features/plan/balances-page'
-import { PlanPage } from '@/features/plan/plan-page'
-import { ReceivablesPage } from '@/features/receivables/receivables-page'
-import { RegisterPage } from '@/features/register/register-page'
-import { ReportsPage } from '@/features/reports/reports-page'
-import { SimulatorPage } from '@/features/simulator/simulator-page'
+import { lazy, Suspense, type ComponentType } from 'react'
+
+/** Cada pantalla se descarga al visitarla: el primer render solo trae lo necesario. */
+function page<K extends string>(load: () => Promise<Record<K, ComponentType>>, name: K) {
+  return lazy(() => load().then((m) => ({ default: m[name] })))
+}
+
+const AppLayout = page(() => import('@/components/layout/app-layout'), 'AppLayout')
+const DashboardPage = page(() => import('@/features/dashboard/dashboard-page'), 'DashboardPage')
+const DataPage = page(() => import('@/features/data/data-page'), 'DataPage')
+const DebtDetailPage = page(() => import('@/features/debts/debt-detail-page'), 'DebtDetailPage')
+const DebtFormPage = page(() => import('@/features/debts/debt-form-page'), 'DebtFormPage')
+const DebtsPage = page(() => import('@/features/debts/debts-page'), 'DebtsPage')
+const ExtraIncomePage = page(() => import('@/features/income/extra-income-page'), 'ExtraIncomePage')
+const ExpenseFormPage = page(() => import('@/features/expenses/expense-form-page'), 'ExpenseFormPage')
+const ExpensesPage = page(() => import('@/features/expenses/expenses-page'), 'ExpensesPage')
+const BudgetPage = page(() => import('@/features/more/budget-page'), 'BudgetPage')
+const MorePage = page(() => import('@/features/more/more-page'), 'MorePage')
+const OnboardingPage = page(() => import('@/features/onboarding/onboarding-page'), 'OnboardingPage')
+const WizardPage = page(() => import('@/features/onboarding/wizard-page'), 'WizardPage')
+const PaymentFormPage = page(() => import('@/features/payments/payment-form-page'), 'PaymentFormPage')
+const BalancesPage = page(() => import('@/features/plan/balances-page'), 'BalancesPage')
+const PlanPage = page(() => import('@/features/plan/plan-page'), 'PlanPage')
+const ReceivablesPage = page(() => import('@/features/receivables/receivables-page'), 'ReceivablesPage')
+const RegisterPage = page(() => import('@/features/register/register-page'), 'RegisterPage')
+const ReportsPage = page(() => import('@/features/reports/reports-page'), 'ReportsPage')
+const SimulatorPage = page(() => import('@/features/simulator/simulator-page'), 'SimulatorPage')
 
 export const router = createBrowserRouter([
-  { path: '/login', element: <LoginPage /> },
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
   {
     element: <RequireAuth />,
     children: [
       {
-        element: <AppLayout />,
+        element: (
+          <Suspense fallback={null}>
+            <AppLayout />
+          </Suspense>
+        ),
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'bienvenida', element: <OnboardingPage /> },
@@ -47,6 +63,7 @@ export const router = createBrowserRouter([
           { path: 'simulador', element: <SimulatorPage /> },
           { path: 'reportes', element: <ReportsPage /> },
           { path: 'mas', element: <MorePage /> },
+          { path: 'mas/presupuesto', element: <BudgetPage /> },
           { path: 'mas/ingresos-extra', element: <ExtraIncomePage /> },
           { path: 'mas/cobros', element: <ReceivablesPage /> },
           { path: 'mas/exportar', element: <DataPage /> },

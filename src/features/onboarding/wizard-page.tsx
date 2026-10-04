@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { ArrowLeft, ArrowRight, CreditCard, Flag, Landmark, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
@@ -549,6 +550,7 @@ function PlanStep({
 const EMPTY: WizardState = { nombre: '', ingreso: null, gastosFijos: [], deudas: [], cuotas: [] }
 
 export function WizardPage() {
+  useDocumentTitle('Empezar desde cero')
   const navigate = useNavigate()
   const importPayload = useImportPayload()
   const [paso, setPaso] = useState(0)

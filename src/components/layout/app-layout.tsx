@@ -10,9 +10,10 @@ import {
   Plus,
   Receipt,
   Sun,
+  WifiOff,
   type LucideIcon,
 } from 'lucide-react'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { useAuth } from '@/app/providers/auth'
 import { useTheme, type ThemePreference } from '@/app/providers/theme'
@@ -29,6 +30,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useOnline } from '@/hooks/use-online'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -138,11 +141,42 @@ function QuickAddSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o
   )
 }
 
+/** Mientras se descarga una pantalla. */
+function PageFallback() {
+  return (
+    <div className="grid gap-4" aria-busy="true" aria-label="Cargando">
+      <Skeleton className="h-8 w-48 rounded-lg" />
+      <Skeleton className="h-40 rounded-xl" />
+      <Skeleton className="h-64 rounded-xl" />
+    </div>
+  )
+}
+
+function OfflineBanner() {
+  const online = useOnline()
+  if (online) return null
+  return (
+    <div
+      role="status"
+      className="bg-warning-soft text-warning-foreground flex items-center justify-center gap-2 px-4 py-2 text-center text-sm"
+    >
+      <WifiOff className="size-4 shrink-0" aria-hidden />
+      Sin conexión: ves los últimos datos cargados y no se pueden guardar cambios.
+    </div>
+  )
+}
+
 export function AppLayout() {
   const [quickAdd, setQuickAdd] = useState(false)
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[240px_1fr]">
+      <a
+        href="#contenido"
+        className="bg-primary text-primary-foreground sr-only z-50 rounded-lg px-4 py-2 font-medium focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+      >
+        Saltar al contenido
+      </a>
       {/* Barra lateral (escritorio) */}
       <aside className="bg-card/60 sticky top-0 hidden h-dvh flex-col gap-6 border-r px-4 py-6 lg:flex">
         <Link to="/" className="px-2">
@@ -181,9 +215,16 @@ export function AppLayout() {
             <UserMenu />
           </div>
         </header>
+        <OfflineBanner />
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-5 pb-28 lg:px-8 lg:pb-12">
-          <Outlet />
+        <main
+          id="contenido"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-5xl flex-1 px-4 pt-5 pb-28 focus:outline-none lg:px-8 lg:pb-12"
+        >
+          <Suspense fallback={<PageFallback />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 

@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { CheckCircle2, KeyRound, Loader2, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -139,6 +140,7 @@ function PasswordForm() {
 export function LoginPage() {
   const { session, loading } = useAuth()
   const location = useLocation()
+  useDocumentTitle('Entrar')
   const from = (location.state as { from?: string } | null)?.from ?? '/'
   if (!loading && session) return <Navigate to={from} replace />
 

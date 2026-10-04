@@ -1,4 +1,5 @@
 import { Database, FileJson, FileSpreadsheet, FlaskConical, Loader2, Sparkles, type LucideIcon } from 'lucide-react'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -52,6 +53,7 @@ function Option({
 }
 
 export function OnboardingPage() {
+  useDocumentTitle('Bienvenida')
   const navigate = useNavigate()
   const importData = useImportData()
   const [includeReceivables, setIncludeReceivables] = useState(false)

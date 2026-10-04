@@ -1,3 +1,4 @@
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import {
   ArrowLeft,
   CheckCircle2,
@@ -233,6 +234,7 @@ export function DebtDetailPage() {
   const setClosed = useSetDebtClosed()
   const remove = useDeleteDebt()
   const [confirm, setConfirm] = useState<'close' | 'delete' | null>(null)
+  useDocumentTitle(debt.data?.nombre ?? 'Deuda')
 
   const error = debt.error ?? statuses.error ?? payments.error ?? installments.error
   if (error) return <ErrorState error={error} />

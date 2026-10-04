@@ -15,9 +15,13 @@ export default defineConfig({
         name: 'Saldá · Control de deudas',
         short_name: 'Saldá',
         description: 'Registrá pagos y gastos, seguí tu plan y quedá libre de deudas.',
+        id: '/',
         lang: 'es-GT',
+        dir: 'ltr',
         start_url: '/',
+        scope: '/',
         display: 'standalone',
+        categories: ['finance', 'productivity'],
         background_color: '#0b1a1d',
         theme_color: '#0f2d32',
         icons: [
@@ -25,6 +29,21 @@ export default defineConfig({
           { src: '/icons/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
           { src: '/icons/maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+        // Mantener presionado el ícono de la app: accesos directos a lo más usado.
+        shortcuts: [
+          {
+            name: 'Registrar pago',
+            short_name: 'Pago',
+            url: '/registrar/pago',
+            icons: [{ src: '/icons/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
+          },
+          {
+            name: 'Registrar gasto',
+            short_name: 'Gasto',
+            url: '/registrar/gasto',
+            icons: [{ src: '/icons/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
+          },
         ],
       },
       workbox: {

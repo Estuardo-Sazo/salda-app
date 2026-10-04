@@ -1,6 +1,7 @@
 import { AlertTriangle, Construction, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { formatGTQ } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -33,6 +34,7 @@ export function PageHeader({
   description?: ReactNode
   action?: ReactNode
 }) {
+  useDocumentTitle(title)
   return (
     <header className="mb-5 flex items-end justify-between gap-3">
       <div className="min-w-0">

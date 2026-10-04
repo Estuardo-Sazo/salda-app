@@ -11,6 +11,8 @@ import {
   Table2,
   Receipt,
   Trash2,
+  Smartphone,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -20,7 +22,7 @@ import { useAuth } from '@/app/providers/auth'
 import { useTheme, type ThemePreference } from '@/app/providers/theme'
 import { Money, PageHeader } from '@/components/common'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -33,8 +35,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProfile, useResetData } from '@/features/common/queries'
+import { promptInstall, useInstallState } from '@/lib/pwa/install'
 
 const LINKS: { to: string; label: string; text: string; icon: LucideIcon }[] = [
+  { to: '/mas/presupuesto', label: 'Ingreso y gastos fijos', text: 'Base del flujo libre', icon: Wallet },
   { to: '/gastos', label: 'Gastos', text: 'Por mes, categoría y método', icon: Receipt },
   { to: '/mas/ingresos-extra', label: 'Ingresos extra', text: 'Aguinaldo, Bono 14 y otros', icon: Gift },
   { to: '/saldos', label: 'Saldos mensuales', text: 'Tabla período × deuda', icon: Table2 },
@@ -132,6 +136,33 @@ function ResetDialog() {
   )
 }
 
+/** Instalar la app en el celular o la computadora. */
+function InstallCard() {
+  const state = useInstallState()
+  if (state === 'instalada' || state === 'no-disponible') return null
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Smartphone className="size-4" aria-hidden /> Instalar Saldá
+        </CardTitle>
+        <CardDescription>
+          {state === 'ios'
+            ? 'En Safari tocá Compartir y luego “Agregar a inicio”.'
+            : 'Abrila desde tu pantalla de inicio como cualquier app, también sin conexión.'}
+        </CardDescription>
+      </CardHeader>
+      {state === 'disponible' && (
+        <CardContent>
+          <Button onClick={() => void promptInstall().then((ok) => ok && toast.success('Saldá quedó instalada'))}>
+            <Smartphone /> Instalar app
+          </Button>
+        </CardContent>
+      )}
+    </Card>
+  )
+}
+
 export function MorePage() {
   const { user, signOut } = useAuth()
   const { theme, setTheme } = useTheme()
@@ -145,6 +176,11 @@ export function MorePage() {
           <CardHeader>
             <CardTitle>Perfil</CardTitle>
             <CardDescription className="truncate">{user?.email}</CardDescription>
+            <CardAction>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/mas/presupuesto">Editar</Link>
+              </Button>
+            </CardAction>
           </CardHeader>
           <CardContent>
             <dl className="grid grid-cols-2 gap-3 text-sm">
@@ -178,6 +214,8 @@ export function MorePage() {
           </CardContent>
         </Card>
       </div>
+
+      <InstallCard />
 
       <Card className="mt-4 gap-0 py-0">
         <ul className="divide-y">

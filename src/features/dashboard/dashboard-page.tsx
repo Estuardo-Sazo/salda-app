@@ -1,3 +1,4 @@
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import {
   AlertOctagon,
   ArrowDownRight,
@@ -397,6 +398,7 @@ function DashboardSkeleton() {
 }
 
 export function DashboardPage() {
+  useDocumentTitle('Inicio')
   const periodo = currentPeriod()
   const totals = useMonthlyTotals()
   const balances = useMonthlyBalances()
