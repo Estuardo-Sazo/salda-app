@@ -13,6 +13,8 @@ import { ExpensesPage } from '@/features/expenses/expenses-page'
 import { MorePage } from '@/features/more/more-page'
 import { OnboardingPage } from '@/features/onboarding/onboarding-page'
 import { PaymentFormPage } from '@/features/payments/payment-form-page'
+import { BalancesPage } from '@/features/plan/balances-page'
+import { PlanPage } from '@/features/plan/plan-page'
 import { RegisterPage } from '@/features/register/register-page'
 
 export const router = createBrowserRouter([
@@ -35,8 +37,8 @@ export const router = createBrowserRouter([
           { path: 'deudas/:id', element: <DebtDetailPage /> },
           { path: 'deudas/:id/editar', element: <DebtFormPage /> },
           { path: 'pagos/:id/editar', element: <PaymentFormPage /> },
-          { path: 'saldos', element: <ComingSoon title="Saldos mensuales" fase={5} /> },
-          { path: 'plan', element: <ComingSoon title="Plan vs real" fase={5} /> },
+          { path: 'saldos', element: <BalancesPage /> },
+          { path: 'plan', element: <PlanPage /> },
           {
             path: 'simulador',
             element: (

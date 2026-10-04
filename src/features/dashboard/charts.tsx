@@ -13,19 +13,10 @@ import {
   type TooltipValueType,
 } from 'recharts'
 import { formatGTQ, formatGTQCompact, formatPeriod, formatPeriodShort } from '@/lib/format'
+import { axisProps, seriesColor } from './chart-style'
 import type { DashboardModel } from './model'
 
-/** Color fijo por entidad (orden de prioridad de la deuda), nunca por ranking. */
-const seriesColor = (index: number) => `var(--series-${(index % 8) + 1})`
-
-const axisProps = {
-  stroke: 'var(--muted-foreground)',
-  fontSize: 11,
-  tickLine: false,
-  axisLine: false,
-} as const
-
-function ChartTooltip({ active, payload, label }: TooltipContentProps<TooltipValueType, string | number>) {
+export function ChartTooltip({ active, payload, label }: TooltipContentProps<TooltipValueType, string | number>) {
   if (!active || !payload?.length) return null
   const rows = payload.filter((p) => p.value != null)
   if (!rows.length) return null
@@ -47,7 +38,7 @@ function ChartTooltip({ active, payload, label }: TooltipContentProps<TooltipVal
   )
 }
 
-function LegendContent({ items }: { items: { label: string; color: string; dashed?: boolean }[] }) {
+export function LegendContent({ items }: { items: { label: string; color: string; dashed?: boolean }[] }) {
   return (
     <ul className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
       {items.map((i) => (
