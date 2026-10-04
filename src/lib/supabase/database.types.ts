@@ -642,6 +642,7 @@ export type Database = {
       }
     }
     Functions: {
+      activate_plan: { Args: { p_plan_id: string }; Returns: undefined }
       current_period: { Args: never; Returns: string }
       debt_fuera_saldo: { Args: { p_debt_id: string }; Returns: number }
       flat_balance_at: {
@@ -654,6 +655,7 @@ export type Database = {
         Returns: undefined
       }
       reset_my_data: { Args: never; Returns: undefined }
+      save_plan: { Args: { payload: Json }; Returns: string }
     }
     Enums: {
       debt_type: 'tarjeta' | 'prestamo'
